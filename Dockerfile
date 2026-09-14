@@ -20,10 +20,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bcmath \
     && rm -rf /var/lib/apt/lists/*
 
-# Fix AH00534 (More than one MPM loaded):
-# Ensure ONLY mpm_prefork is enabled, removing any conflicting mpm_event or mpm_worker symlinks
+# Fix AH00534 (More than one MPM loaded) and AH00558 (ServerName domain warning):
 RUN rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf \
-    && a2enmod mpm_prefork rewrite headers
+    && a2enmod mpm_prefork rewrite headers \
+    && echo 'ServerName localhost' >> /etc/apache2/apache2.conf
 
 # Configure PHP production directives
 RUN { \

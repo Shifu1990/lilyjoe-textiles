@@ -1,10 +1,10 @@
 #!/bin/sh
 set -e
 
-# Prevent Apache MPM conflict error (AH00534: More than one MPM loaded)
-# Remove all enabled MPM modules and explicitly enable only mpm_prefork for PHP
+# Prevent Apache MPM conflict error (AH00534) and ServerName notice (AH00558)
 rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf
 a2enmod mpm_prefork rewrite headers > /dev/null 2>&1 || true
+grep -q "ServerName" /etc/apache2/apache2.conf || echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Bind Apache to Railway dynamic $PORT (defaults to 80 if not set)
 PORT="${PORT:-80}"
