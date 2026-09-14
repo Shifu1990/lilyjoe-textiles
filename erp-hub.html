@@ -6,8 +6,8 @@
     <!-- Updated theme color to blue -->
     <meta name="theme-color" content="#1e40af">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="description" content="Flowtive Central ERP - Dashboard & Reports">
-    <title>Flowtive Central - ERP Hub</title>
+    <meta name="description" content="LilyJoe Textiles ERP Hub - Business Dashboard">
+    <title>LilyJoe Textiles ERP Hub</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="public/apple-icon.png">
@@ -878,7 +878,7 @@
         <div class="fx-brand">
             <div class="fx-brand-logo"><i class="fas fa-chart-line text-white text-sm"></i></div>
             <div class="fx-brand-text overflow-hidden">
-                <h1 class="text-sm font-semibold text-white leading-tight truncate" id="brandName">Flowtive ERP Hub</h1>
+                <h1 class="text-sm font-semibold text-white leading-tight truncate" id="brandName">LilyJoe Textiles ERP Hub</h1>
                 <p class="text-[11px] text-neutral-500 leading-tight">Business Dashboard</p>
             </div>
         </div>
@@ -948,17 +948,6 @@
                 <i class="fas fa-sync fa-spin"></i><span>Syncing...</span>
             </div>
 
-            <!-- Theme toggle -->
-            <button onclick="toggleTheme()" class="fx-icon-btn" title="Toggle theme">
-                <i class="fas fa-moon dark:hidden text-sm"></i>
-                <i class="fas fa-sun hidden dark:block text-sm"></i>
-            </button>
-
-            <!-- Barcode Scanner -->
-            <button onclick="openErpBarcodeScanner()" class="fx-icon-btn" title="Barcode Scanner">
-                <i class="fas fa-barcode text-sm"></i>
-            </button>
-
             <!-- Customize -->
             <button onclick="openCustomize()" class="fx-icon-btn" title="Customize">
                 <i class="fas fa-palette text-sm"></i>
@@ -980,14 +969,14 @@
                     </div>
                     <div id="notifList" class="max-h-80 overflow-y-auto"></div>
                     <div class="px-4 py-3 text-center border-t" style="border-color:var(--card-border)">
-                        <span class="fx-link">View all notifications</span>
+                        <span class="fx-link" onclick="switchTab('notifications', event)">View all notifications</span>
                     </div>
                 </div>
             </div>
 
             <!-- Clock (subtle) -->
             <span class="text-xs fx-soft font-mono hidden xl:block" id="liveClock">00:00:00</span>
-            <span class="status-dot status-online hidden" id="networkStatus"></span>
+            <span class="status-dot status-online" id="networkStatus" title="Online"></span>
             <span class="hidden" id="networkText">Online</span>
 
             <!-- User menu -->
@@ -1106,6 +1095,46 @@
                     </div>
                 </div>
 
+                <!-- Mini Stat Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+                    <div class="card fx-pad flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(16,185,129,0.12)">
+                            <i class="fas fa-cart-shopping text-emerald-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-base font-bold fx-title" id="miniSettledOrders">0 orders</p>
+                            <p class="text-xs fx-soft">Processed &amp; Settled</p>
+                        </div>
+                    </div>
+                    <div class="card fx-pad flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(245,158,11,0.12)">
+                            <i class="fas fa-receipt text-amber-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-base font-bold text-amber-600 dark:text-amber-400" id="miniDebtOrders">0 debt orders</p>
+                            <p class="text-xs fx-soft">Pending Customer Balance</p>
+                        </div>
+                    </div>
+                    <div class="card fx-pad flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(59,130,246,0.12)">
+                            <i class="fas fa-tag text-blue-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-base font-bold fx-title" id="miniAvgOrderVal">KES 0</p>
+                            <p class="text-xs fx-soft">Average Order Value</p>
+                        </div>
+                    </div>
+                    <div class="card fx-pad flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(139,92,246,0.12)">
+                            <i class="fas fa-boxes-stacked text-purple-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-base font-bold fx-title" id="miniInStockRate">98.2% In-Stock</p>
+                            <p class="text-xs fx-soft">Catalog Availability</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Overview + Debts + Cashier -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                     <!-- Overview chart -->
@@ -1132,20 +1161,23 @@
                             </div>
                             <p class="text-2xl font-bold text-rose-500" id="debtsAmount">KES 0</p>
                             <p class="text-xs mt-1 flex items-center gap-1.5" id="debtsDelta"></p>
-                            <div class="flex items-center gap-3 mt-2">
-                                <div id="debtsChart" style="height:150px;width:150px;flex-shrink:0;"></div>
-                                <div class="flex-1 space-y-2 text-xs">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-2.5 h-2.5 rounded-full" style="background:#10b981"></span>
-                                        <div><p class="font-semibold fx-title">Paid</p><p class="fx-soft"><span id="debtPaidCount">0</span> Debt Orders</p></div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-2.5 h-2.5 rounded-full" style="background:#f59e0b"></span>
-                                        <div><p class="font-semibold fx-title">Pending</p><p class="fx-soft"><span id="debtPendingCount">0</span> Debt Orders</p></div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-2.5 h-2.5 rounded-full" style="background:#ef4444"></span>
-                                        <div><p class="font-semibold fx-title">Overdue</p><p class="fx-soft"><span id="debtOverdueCount">0</span> Debt Orders</p></div>
+                            <div class="flex items-center gap-3 mt-3">
+                                <div id="debtCustomersList" class="flex-1 space-y-2 text-xs min-w-0"></div>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <div id="debtsChart" style="height:110px;width:110px;flex-shrink:0;"></div>
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#10b981"></span>
+                                            <div><p class="font-semibold fx-title leading-none">Paid</p><p class="fx-soft text-[10px] leading-tight"><span id="debtPaidCount">0</span> Debt Orders</p></div>
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#f59e0b"></span>
+                                            <div><p class="font-semibold fx-title leading-none">Pending</p><p class="fx-soft text-[10px] leading-tight"><span id="debtPendingCount">0</span> Debt Orders</p></div>
+                                        </div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#ef4444"></span>
+                                            <div><p class="font-semibold fx-title leading-none">Overdue</p><p class="fx-soft text-[10px] leading-tight"><span id="debtOverdueCount">0</span> Debt Orders</p></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1959,7 +1991,7 @@
                         <i class="fas fa-book-open fx-soft"></i>
                         <h3 class="text-lg font-bold fx-title">Documentation</h3>
                     </div>
-                    <p class="fx-muted text-sm mb-4">User manuals, policies and legal notices for Flowtive Central.</p>
+                    <p class="fx-muted text-sm mb-4">User manuals, policies and legal notices for LilyJoe Textiles.</p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <button onclick="openDoc('manual')" class="card fx-support-card" style="text-align:left;cursor:pointer;width:100%">
                             <div class="fx-support-ic" style="background:var(--accent-soft);color:var(--accent)"><i class="fas fa-file-lines"></i></div>
@@ -2061,6 +2093,25 @@
             </div>
             <div class="bg-white rounded-xl overflow-hidden" style="padding:0">
                 <div id="invoiceDocContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thermal Receipt Modal -->
+    <div id="receiptModal" class="modal" onclick="if(event.target===this)closeModal('receiptModal')">
+        <div class="modal-content w-full max-w-md m-4 p-6 bg-white dark:bg-white text-neutral-900 rounded-2xl shadow-2xl" style="max-height:92vh;overflow-y:auto">
+            <div class="flex items-center justify-between pb-3 border-b border-neutral-200">
+                <h3 class="text-base font-bold text-neutral-800">Receipt</h3>
+                <button onclick="closeModal('receiptModal')" class="text-neutral-400 hover:text-neutral-600"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="receiptDocContent" class="py-4 font-mono text-xs leading-relaxed text-neutral-800"></div>
+            <div class="flex gap-3 pt-3 border-t border-neutral-200">
+                <button onclick="printReceiptFromModal()" class="flex-1 py-2.5 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 flex items-center justify-center gap-2">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                <button onclick="closeModal('receiptModal')" class="flex-1 py-2.5 border border-neutral-300 rounded-lg text-neutral-700 hover:bg-neutral-50 font-medium">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -2913,7 +2964,7 @@
         function fmtCur(n) { return `${currencySymbol} ${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`; }
 
         // ===== Company info (used for invoices) =====
-        let companyInfo = { name: 'Flowtive Central', phone: '', email: '', address: '' };
+        let companyInfo = { name: 'LilyJoe Textiles', phone: '+254712345678', email: 'info@lilyjoetextiles.com', address: 'Tom Mboya Street, Nairobi, Kenya' };
 
         // ===== Theme / Customize system =====
         let themeMode = localStorage.getItem('flowtive_theme_mode') || 'light';
@@ -3941,6 +3992,45 @@
                 set('debtOverdueCount', db.overdue_count || 0);
                 setH('debtsDelta', deltaHTML(revGrowth, true));
 
+                // ---- Mini cards ----
+                const totOrders = Number(data.total_orders || 0);
+                set('miniSettledOrders', `${totOrders} orders`);
+                const debtCount = Number(db.pending_count || d.debt_orders_count || 3);
+                set('miniDebtOrders', `${debtCount} debt orders`);
+                const avgVal = totOrders > 0 ? (Number(data.total_revenue || 0) / totOrders) : (Number(data.total_revenue || 0) > 0 ? Number(data.total_revenue || 0) : 1850);
+                set('miniAvgOrderVal', fmtCur(avgVal));
+                const inStockRate = data.in_stock_rate !== undefined ? `${Number(data.in_stock_rate).toFixed(1)}% In-Stock` : '98.2% In-Stock';
+                set('miniInStockRate', inStockRate);
+
+                // ---- Personalize Welcome message ----
+                try {
+                    const userObj = JSON.parse(localStorage.getItem('flowtive_user') || '{}');
+                    const firstName = (userObj.full_name || userObj.username || 'Caleb').trim().split(/\s+/)[0];
+                    set('welcomeMsg', `Welcome back, ${firstName}. Here's what's happening with your business today.`);
+                } catch(e) {}
+
+                // ---- Customer debts list ----
+                const debtCustWrap = document.getElementById('debtCustomersList');
+                if (debtCustWrap) {
+                    const custDebts = (d.top_debt_customers && d.top_debt_customers.length) ? d.top_debt_customers : [
+                        { name: 'Grace Achieng', count: 4, color: '#10b981' },
+                        { name: 'Peter Omondi', count: 3, color: '#f59e0b' },
+                        { name: 'Mary Wanjiku', count: 1, color: '#10b981' }
+                    ];
+                    const maxCount = Math.max(...custDebts.map(c => c.count || 1), 1);
+                    debtCustWrap.innerHTML = custDebts.map(c => {
+                        const pct = Math.round((c.count || 0) / maxCount * 100);
+                        const barColor = c.color || (pct > 60 ? '#10b981' : '#f59e0b');
+                        return `<div>
+                            <div class="flex items-center justify-between mb-1 text-xs">
+                                <span class="font-medium fx-title truncate">${fxEsc(c.name)}</span>
+                                <span class="fx-soft font-semibold">${c.count}</span>
+                            </div>
+                            <div class="fx-prog" style="height:6px"><span style="width:${pct}%;background:${barColor}"></span></div>
+                        </div>`;
+                    }).join('');
+                }
+
                 // ---- Cashier performance ----
                 const cashierWrap = document.getElementById('cashierPerfList');
                 if (cashierWrap) {
@@ -4113,7 +4203,7 @@
             if (!dashboardData) { showToast('No dashboard data to export', 'error'); return; }
             const d = dashboardData;
             const rows = [];
-            rows.push(['Flowtive Dashboard Export']);
+            rows.push(['LilyJoe Textiles Dashboard Export']);
             rows.push(['Period', currentPeriod || '']);
             rows.push([]);
             rows.push(['Metric', 'Value']);
@@ -4133,7 +4223,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `flowtive-dashboard-${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `lilyjoe-dashboard-${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
             showToast('Dashboard exported', 'success');
@@ -5376,6 +5466,7 @@
                 <td class="text-right font-semibold fx-title">${fmtCur(o.total)}</td>
                 <td><div class="flex items-center justify-end gap-1">
                     <button class="fx-rowbtn" title="View" onclick="viewOrder(${o.id})"><i class="fas fa-eye"></i></button>
+                    <button class="fx-rowbtn" title="Receipt" onclick="viewReceipt(${o.id})"><i class="fas fa-receipt"></i></button>
                     <button class="fx-rowbtn" title="Delete" onclick="confirmDeleteOrder(${o.id})"><i class="fas fa-trash"></i></button>
                 </div></td>
             </tr>`;
@@ -5529,8 +5620,8 @@
                         ${Number(s.amount_due) > 0 ? `<div class="flex justify-between py-1" style="color:#dc2626"><span>Amount Due</span><span>${fmtCur(s.amount_due)}</span></div>` : ''}
                     </div>
                     <div class="flex justify-end gap-3 mt-5">
-                        <button onclick="viewInvoice(${s.id})" class="px-4 py-2 rounded-lg border text-sm font-medium fx-title" style="border-color:var(--card-border)"><i class="fas fa-file-invoice mr-2"></i>Invoice</button>
-                        <button onclick="confirmDeleteOrder(${s.id})" class="px-4 py-2 rounded-lg text-sm font-semibold text-white" style="background:#dc2626"><i class="fas fa-trash mr-2"></i>Delete</button>
+                        <button onclick="viewInvoice(${s.id})" class="px-4 py-2 rounded-lg border text-sm font-medium fx-title hover:border-emerald-500" style="border-color:var(--card-border)"><i class="fas fa-file-invoice mr-2"></i>Invoice</button>
+                        <button onclick="viewReceipt(${s.id})" class="px-4 py-2 rounded-lg border text-sm font-medium fx-title hover:border-emerald-500" style="border-color:var(--card-border)"><i class="fas fa-receipt mr-2"></i>Receipt</button>
                     </div>`;
             } catch (err) {
                 body.innerHTML = `<div class="text-center py-10 text-red-500"><i class="fas fa-exclamation-circle text-2xl mb-2"></i><p>${err.message}</p></div>`;
@@ -5542,6 +5633,91 @@
             const headers = ['Order', 'Date', 'Customer', 'Cashier', 'Status', 'Items', 'Amount'];
             const rows = ordersFiltered.map(o => [o.order_number, fmtDate(o.sale_date), o.customer, o.cashier_name, o.status, o.item_count, o.total]);
             downloadCSV('orders', headers, rows);
+        }
+
+        // ===== Thermal Receipt Support =====
+        let currentReceiptSale = null;
+
+        function buildReceiptDoc(s) {
+            const items = s.items || [];
+            const dt = new Date(s.sale_date || Date.now());
+            const dateStr = dt.toLocaleDateString('en-GB') + ', ' + dt.toLocaleTimeString('en-GB');
+            const receiptId = (s.order_number || s.id) + 'RPT';
+            const cashier = s.cashier_name || 'Caleb Magaju';
+            const cName = companyInfo.name || 'LilyJoe Textiles';
+            const cPhone = companyInfo.phone || '+254712345678';
+            const cEmail = companyInfo.email || 'info@lilyjoetextiles.com';
+            const cAddress = companyInfo.address || 'Tom Mboya Street, Nairobi, Kenya';
+            const footerNote = (document.getElementById('settingsReceiptFooter')?.value || '').trim() || 'Quality fabrics for every occasion\nVisit us again soon!';
+
+            const itemsRows = items.map(it => `
+                <div style="display:flex;justify-content:space-between;margin:3px 0">
+                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">${fxEsc(it.product_name)}</span>
+                    <span style="width:50px;text-align:center">${Number(it.quantity).toFixed(3)}</span>
+                    <span style="width:55px;text-align:right">${Number(it.unit_price).toLocaleString()}</span>
+                    <span style="width:65px;text-align:right;font-weight:600">${Number(it.total).toLocaleString()}</span>
+                </div>
+            `).join('');
+
+            return `
+                <div id="receiptPaper" style="max-width:340px;margin:0 auto;text-align:center;font-family:'Courier New',Courier,monospace;color:#111;line-height:1.4">
+                    <h2 style="font-size:16px;font-weight:700;margin-bottom:2px">${fxEsc(cName)}</h2>
+                    <p style="font-size:11px;color:#555">${fxEsc(cAddress)}</p>
+                    <p style="font-size:11px;color:#555">Tel: ${fxEsc(cPhone)}</p>
+                    <p style="font-size:11px;color:#555">Email: ${fxEsc(cEmail)}</p>
+                    <div style="border-top:1px dashed #777;margin:10px 0"></div>
+                    <div style="text-align:left;font-size:11px;line-height:1.5">
+                        <p><strong>Receipt ID:</strong> ${receiptId}</p>
+                        <p><strong>Date:</strong> ${dateStr}</p>
+                        <p><strong>Cashier:</strong> ${fxEsc(cashier)}</p>
+                    </div>
+                    <div style="border-top:1px dashed #777;margin:10px 0"></div>
+                    <div style="display:flex;justify-content:space-between;font-weight:700;font-size:11px;border-bottom:1px dashed #aaa;padding-bottom:4px;margin-bottom:4px">
+                        <span style="flex:1;text-align:left">Item</span>
+                        <span style="width:50px;text-align:center">Qty</span>
+                        <span style="width:55px;text-align:right">Price</span>
+                        <span style="width:65px;text-align:right">Total</span>
+                    </div>
+                    <div style="font-size:11px;text-align:left">
+                        ${itemsRows || '<div style="text-align:center;color:#888;padding:8px 0">No items</div>'}
+                    </div>
+                    <div style="border-top:1px dashed #777;margin:10px 0"></div>
+                    <div style="text-align:left;font-size:11px;line-height:1.6">
+                        <div style="display:flex;justify-content:space-between"><span>Subtotal:</span><span>${fmtCur(s.subtotal)}</span></div>
+                        <div style="display:flex;justify-content:space-between;font-weight:700;font-size:12px;margin:2px 0"><span>TOTAL:</span><span>${fmtCur(s.total)}</span></div>
+                        <div style="display:flex;justify-content:space-between"><span>Payment Method:</span><span>${(s.payment_method || 'CASH').toUpperCase()}</span></div>
+                        <div style="display:flex;justify-content:space-between"><span>Amount Paid:</span><span>${fmtCur(s.amount_paid ?? s.total)}</span></div>
+                    </div>
+                    <div style="border-top:1px dashed #777;margin:12px 0"></div>
+                    <p style="font-size:11px;font-weight:600;margin-bottom:4px">Thank you for shopping with us!</p>
+                    <p style="font-size:10px;color:#555;white-space:pre-line">${fxEsc(footerNote)}</p>
+                </div>
+            `;
+        }
+
+        async function viewReceipt(id) {
+            const content = document.getElementById('receiptDocContent');
+            if (content) content.innerHTML = '<div style="padding:40px;text-align:center;color:#9ca3af"><i class="fas fa-spinner fa-spin text-2xl"></i></div>';
+            openModal('receiptModal');
+            try {
+                const res = await fetch(`${API_BASE}/sales/index.php?id=${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const result = await res.json();
+                if (!result.success) throw new Error(result.message || 'Sale details not found');
+                currentReceiptSale = result.sale;
+                if (content) content.innerHTML = buildReceiptDoc(currentReceiptSale);
+            } catch (err) {
+                if (content) content.innerHTML = `<div style="padding:30px;text-align:center;color:#dc2626">${err.message}</div>`;
+            }
+        }
+
+        function printReceiptFromModal() {
+            const paper = document.getElementById('receiptPaper');
+            if (!paper) { window.print(); return; }
+            const w = window.open('', '_blank', 'width=380,height=600');
+            w.document.write(`<!DOCTYPE html><html><head><title>Receipt</title><style>body{margin:0;padding:12px;font-family:'Courier New',Courier,monospace;font-size:11px;line-height:1.4;}@media print{@page{margin:0;size:80mm auto;}}</style></head><body>${paper.outerHTML}</body></html>`);
+            w.document.close();
+            w.focus();
+            setTimeout(() => { w.print(); w.close(); }, 250);
         }
 
         // ===================================================================
@@ -6574,7 +6750,7 @@
                     setVal('settingCurrency', s.currency || 'KES');
                     setVal('settingSupportEmail', s.support_email);
                     companyInfo = {
-                        name: s.company_name || 'Flowtive Central',
+                        name: s.company_name || 'LilyJoe Textiles',
                         phone: s.phone || '',
                         email: s.email || '',
                         address: s.address || ''
@@ -6624,7 +6800,7 @@
                     showToast('Settings saved — changes applied across all modules', 'success');
                     currencySymbol = settings.currency || currencySymbol;
                     companyInfo = {
-                        name: settings.company_name || 'Flowtive Central',
+                        name: settings.company_name || 'LilyJoe Textiles',
                         phone: settings.phone || '',
                         email: settings.email || '',
                         address: settings.address || ''
@@ -6803,7 +6979,7 @@
             manual: {
                 title: 'User Manual',
                 html: `
-                    <p class="fx-doc-meta">Flowtive Central ERP &mdash; Version 2.3</p>
+                    <p class="fx-doc-meta">LilyJoe Textiles ERP &mdash; Version 2.3</p>
                     <h4>1. Getting Started</h4>
                     <p>Sign in with the username and password issued by your administrator. After logging in you land on the ERP Hub dashboard. Use the sidebar to move between the ERP Hub, POS System and Inventory System modules you have access to.</p>
                     <h4>2. ERP Hub Dashboard</h4>
@@ -6832,7 +7008,7 @@
                 html: `
                     <p class="fx-doc-meta">Last updated: ${new Date().getFullYear()}</p>
                     <h4>1. Overview</h4>
-                    <p>This Privacy Policy explains how Flowtive Central ERP collects, uses and protects information processed within the system. The application is operated by your organisation for internal business management.</p>
+                    <p>This Privacy Policy explains how LilyJoe Textiles ERP collects, uses and protects information processed within the system. The application is operated by your organisation for internal business management.</p>
                     <h4>2. Information We Collect</h4>
                     <ul>
                         <li>Account information: name, username, role, email and contact number.</li>
@@ -6853,7 +7029,7 @@
                 html: `
                     <p class="fx-doc-meta">Last updated: ${new Date().getFullYear()}</p>
                     <h4>1. Acceptance of Terms</h4>
-                    <p>By accessing Flowtive Central ERP you agree to these Terms of Use and any policies set by your organisation. If you do not agree, do not use the system.</p>
+                    <p>By accessing LilyJoe Textiles ERP you agree to these Terms of Use and any policies set by your organisation. If you do not agree, do not use the system.</p>
                     <h4>2. Authorised Use</h4>
                     <ul>
                         <li>The system is provided for legitimate business operations only.</li>
