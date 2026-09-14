@@ -5,8 +5,8 @@
 
 FROM php:8.2-apache
 
-# Install PostgreSQL client dev libraries and system utilities
-RUN apt-get update && apt-get install -y \
+# Install PostgreSQL client dev libraries and system utilities without recommended extras
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libzip-dev \
     zip \
@@ -20,8 +20,10 @@ RUN apt-get update && apt-get install -y \
     bcmath \
     && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache rewrite and headers modules
-RUN a2enmod rewrite headers
+# Fix AH00534 (More than one MPM loaded):
+# Ensure ONLY mpm_prefork is enabled, removing any conflicting mpm_event or mpm_worker symlinks
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf \
+    && a2enmod mpm_prefork rewrite headers
 
 # Configure PHP production directives
 RUN { \
@@ -53,6 +55,11 @@ RUN { \
 # Set working directory
 WORKDIR /var/www/html
 
+# Copy entrypoint script and fix line endings (handles Windows CRLF)
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
+
 # Copy application files
 COPY . /var/www/html/
 
@@ -60,5 +67,6 @@ COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Dynamic port binding for Railway ($PORT environment variable)
-CMD sh -c "sed -i 's/80/'\"\${PORT:-80}\"'/g' /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf && exec apache2-foreground"
+# Entrypoint guarantees single MPM and dynamic port binding on Railway container startup
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["apache2-foreground"]
