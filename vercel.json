@@ -43,7 +43,7 @@
     "source": "/api/:path*",
     "destination": "https://lilyjoe-textiles-production.up.railway.app/api/:path*"
   },
-  {
+  { 
     "source": "/",
     "destination": "/login.html"
   }
