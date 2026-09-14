@@ -23,7 +23,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Fix AH00534 (More than one MPM loaded) and AH00558 (ServerName domain warning):
 RUN rm -f /etc/apache2/mods-enabled/mpm_*.load /etc/apache2/mods-enabled/mpm_*.conf \
     && a2enmod mpm_prefork rewrite headers \
-    && echo 'ServerName localhost' >> /etc/apache2/apache2.conf
+    && echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf \
+    && a2enconf servername \
+    && sed -i '1s/^/ServerName localhost\n/' /etc/apache2/apache2.conf
 
 # Configure PHP production directives
 RUN { \
