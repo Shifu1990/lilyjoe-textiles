@@ -454,11 +454,17 @@
             spinner.classList.remove('hidden');
 
             try {
-                const res = await fetch(`${API_BASE}/auth/login.php`, {
+                const api = (window.LILYJOE_CONFIG && window.LILYJOE_CONFIG.getApiBase) ? window.LILYJOE_CONFIG.getApiBase() : API_BASE;
+                const res = await fetch(`${api}/auth/login.php`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
+
+                if (!res.ok && res.status !== 401 && res.status !== 400) {
+                    throw new Error(`Server returned HTTP ${res.status}`);
+                }
+
                 const data = await res.json();
 
                 if (data.success) {
@@ -471,7 +477,10 @@
                 }
             } catch (err) {
                 console.error('[Auth Error]', err);
-                showError(navigator.onLine ? 'Connection error. Check server.' : 'You are offline.');
+                const msg = !navigator.onLine 
+                    ? 'You are offline.' 
+                    : (err.message && !err.message.includes('Unexpected') ? `Connection error: ${err.message}` : 'Connection error. Check server.');
+                showError(msg);
             } finally {
                 btn.disabled = false;
                 btnText.textContent = 'Sign In';

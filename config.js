@@ -14,7 +14,7 @@ window.LILYJOE_CONFIG = {
      */
     getApiBase: function() {
         const customUrl = localStorage.getItem('lilyjoe_api_url') || localStorage.getItem('flowtive_api_url');
-        if (customUrl) {
+        if (customUrl && customUrl !== 'api' && customUrl !== '/api') {
             return customUrl.replace(/\/+$/, '');
         }
 
