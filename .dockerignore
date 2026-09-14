@@ -1,0 +1,12 @@
+.git
+.github
+node_modules
+.next
+.vercel
+.vscode
+.idea
+*.log
+.env*
+scripts/lilyjoe_textiles.sql
+*.sql.gz
+*.tar.gz

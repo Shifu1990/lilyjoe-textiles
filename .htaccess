@@ -1,0 +1,22 @@
+# Flowtive Central ERP - Apache Configuration for XAMPP
+# Enable mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Prevent Apache on XAMPP from stripping HTTP Authorization header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+# Handle CORS and Headers
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+</IfModule>
+
+# Default Directory Index
+DirectoryIndex index.html login.html index.php
+
+# Prevent directory browsing
+Options -Indexes
