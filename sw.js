@@ -3,9 +3,9 @@
  * Enables offline functionality, caching, and background sync
  */
 
-const CACHE_NAME = "lilyjoe-textiles-v1.0.0"
-const STATIC_CACHE = "lilyjoe-static-v1.0.0"
-const DYNAMIC_CACHE = "lilyjoe-dynamic-v1.0.0"
+const CACHE_NAME = "lilyjoe-textiles-v1.1.0"
+const STATIC_CACHE = "lilyjoe-static-v1.1.0"
+const DYNAMIC_CACHE = "lilyjoe-dynamic-v1.1.0"
 
 // Static assets to cache - relative paths support any XAMPP folder name
 const STATIC_ASSETS = [
