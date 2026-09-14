@@ -470,6 +470,7 @@
                     showError(data.message || 'Invalid credentials');
                 }
             } catch (err) {
+                console.error('[Auth Error]', err);
                 showError(navigator.onLine ? 'Connection error. Check server.' : 'You are offline.');
             } finally {
                 btn.disabled = false;
