@@ -85,7 +85,8 @@ try {
                 
                 // Today's sales by default
                 if (!isset($_GET['date_from']) && !isset($_GET['date_to']) && !isset($_GET['all'])) {
-                    $where .= " AND DATE(s.sale_date) = CURDATE()";
+                    $where .= " AND DATE(s.sale_date) = ?";
+                    $params[] = date('Y-m-d');
                 }
                 
                 $sales = $db->fetchAll(

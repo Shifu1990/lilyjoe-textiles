@@ -290,7 +290,8 @@ function generateOrderNumber() {
     $date = date('Ymd');
     $db = getDB();
     $result = $db->fetchOne(
-        "SELECT COUNT(*) as count FROM sales WHERE DATE(sale_date) = CURDATE()"
+        "SELECT COUNT(*) as count FROM sales WHERE DATE(sale_date) = ?",
+        [date('Y-m-d')]
     );
     $sequence = str_pad(($result['count'] + 1), 3, '0', STR_PAD_LEFT);
     return $date . $sequence;

@@ -47,6 +47,13 @@ try {
         [$start, $end]
     ) ?: ['total_orders' => 0, 'total_revenue' => 0, 'total_profit' => 0, 'unexpected_profit' => 0, 'active_debts' => 0, 'avg_order' => 0];
     
+    // Standard date bounds for cross-database compatibility (PostgreSQL & MySQL)
+    $todayDate = date('Y-m-d');
+    $yesterdayDate = date('Y-m-d', strtotime('-1 day'));
+    $sevenDaysAgo = date('Y-m-d 00:00:00', strtotime('-7 days'));
+    $firstDayOfMonth = date('Y-m-01 00:00:00');
+    $lastDayOfMonth = date('Y-m-t 23:59:59');
+
     // Today's statistics with unexpected profit
     $todayStats = $db->fetchOne(
         "SELECT 
@@ -55,12 +62,14 @@ try {
             COALESCE(SUM(profit), 0) as profit,
             COALESCE(SUM(unexpected_profit), 0) as unexpected_profit
          FROM sales 
-         WHERE DATE(sale_date) = CURDATE()"
+         WHERE DATE(sale_date) = ?",
+        [$todayDate]
     ) ?: ['orders_count' => 0, 'revenue' => 0, 'profit' => 0, 'unexpected_profit' => 0];
     
     // Yesterday's statistics for comparison
     $yesterdayStats = $db->fetchOne(
-        "SELECT COALESCE(SUM(total), 0) as revenue FROM sales WHERE DATE(sale_date) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)"
+        "SELECT COALESCE(SUM(total), 0) as revenue FROM sales WHERE DATE(sale_date) = ?",
+        [$yesterdayDate]
     ) ?: ['revenue' => 0];
     
     // This week statistics
@@ -71,7 +80,8 @@ try {
             COALESCE(SUM(profit), 0) as profit,
             COALESCE(SUM(unexpected_profit), 0) as unexpected_profit
          FROM sales 
-         WHERE sale_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)"
+         WHERE sale_date >= ?",
+        [$sevenDaysAgo]
     ) ?: ['orders_count' => 0, 'revenue' => 0, 'profit' => 0, 'unexpected_profit' => 0];
     
     // This month statistics
@@ -82,7 +92,8 @@ try {
             COALESCE(SUM(profit), 0) as profit,
             COALESCE(SUM(unexpected_profit), 0) as unexpected_profit
          FROM sales 
-         WHERE MONTH(sale_date) = MONTH(CURDATE()) AND YEAR(sale_date) = YEAR(CURDATE())"
+         WHERE sale_date >= ? AND sale_date <= ?",
+        [$firstDayOfMonth, $lastDayOfMonth]
     ) ?: ['orders_count' => 0, 'revenue' => 0, 'profit' => 0, 'unexpected_profit' => 0];
     
     // Inventory statistics with potential sales value
@@ -113,10 +124,11 @@ try {
             COALESCE(SUM(s.unexpected_profit), 0) as unexpected_profit,
             COALESCE(AVG(s.total), 0) as avg_order_value
          FROM users u
-         LEFT JOIN sales s ON u.id = s.user_id AND DATE(s.sale_date) = CURDATE()
+         LEFT JOIN sales s ON u.id = s.user_id AND DATE(s.sale_date) = ?
          WHERE u.role IN ('Cashier', 'Manager', 'Admin', 'Super Admin') AND u.status = 'active'
          GROUP BY u.id, u.full_name, u.username
-         ORDER BY total_revenue DESC"
+         ORDER BY total_revenue DESC",
+        [$todayDate]
     ) ?: [];
     
     // Cashier performance for selected date range
@@ -180,7 +192,7 @@ try {
          LEFT JOIN sales s ON si.sale_id = s.id AND DATE(s.sale_date) BETWEEN ? AND ?
          WHERE p.status = 'active'
          GROUP BY p.id, p.name, p.sku
-         HAVING sold_quantity > 0
+         HAVING COALESCE(SUM(si.quantity), 0) > 0
          ORDER BY sold_quantity DESC
          LIMIT 5",
         [$start, $end]
@@ -285,7 +297,7 @@ try {
          LEFT JOIN sale_items si ON p.id = si.product_id
          LEFT JOIN sales s ON si.sale_id = s.id AND DATE(s.sale_date) BETWEEN ? AND ?
          GROUP BY c.id, c.name
-         HAVING value > 0
+         HAVING COALESCE(SUM(si.total), 0) > 0
          ORDER BY value DESC",
         [$start, $end]
     ) ?: [];
@@ -301,10 +313,10 @@ try {
     
     // Hourly sales for today (used when single day is selected)
     $hourlySales = $db->fetchAll(
-        "SELECT HOUR(sale_date) as hour, COUNT(*) as orders, COALESCE(SUM(total), 0) as revenue
+        "SELECT EXTRACT(HOUR FROM sale_date) as hour, COUNT(*) as orders, COALESCE(SUM(total), 0) as revenue
          FROM sales 
          WHERE DATE(sale_date) = ?
-         GROUP BY HOUR(sale_date)
+         GROUP BY EXTRACT(HOUR FROM sale_date)
          ORDER BY hour ASC",
         [$start]
     ) ?: [];
@@ -313,8 +325,9 @@ try {
     $customerStats = $db->fetchOne(
         "SELECT 
             COUNT(*) as total_customers,
-            (SELECT COUNT(*) FROM customers WHERE DATE(created_at) = CURDATE()) as new_today
-         FROM customers"
+            (SELECT COUNT(*) FROM customers WHERE DATE(created_at) = ?) as new_today
+         FROM customers",
+        [$todayDate]
     ) ?: ['total_customers' => 0, 'new_today' => 0];
     
     echo json_encode([
