@@ -35,9 +35,13 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/",
-      "destination": "/login.html"
-    }
-  ]
+  {
+    "source": "/api/:path*",
+    "destination": "https://lilyjoe-textiles-production.up.railway.app/api/:path*"
+  },
+  {
+    "source": "/",
+    "destination": "/login.html"
+  }
+]
 }
