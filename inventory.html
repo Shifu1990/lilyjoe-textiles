@@ -197,6 +197,45 @@
             background: #6366f1;
             color: white;
         }
+
+        /* Category Chips matching reference designs */
+        .category-chip {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: rgba(0, 0, 0, 0.05);
+            color: #64748b;
+            white-space: nowrap;
+            border: 1px solid transparent;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .category-chip:hover {
+            background: rgba(0, 0, 0, 0.08);
+            color: #334155;
+        }
+        .category-chip.active {
+            background: #18181b;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .dark .category-chip {
+            background: rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+        }
+        .dark .category-chip:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #e2e8f0;
+        }
+        .dark .category-chip.active {
+            background: #6366f1;
+            color: #ffffff;
+            font-weight: 600;
+        }
         
         /* Minimalistic modal */
         .modal { 
@@ -468,8 +507,8 @@
 
     <!-- Main Content -->
     <div class="main-content min-h-screen flex flex-col">
-        <!-- Header redesigned to match POS exactly -->
-        <header class="app-header fixed top-0 left-0 right-0 z-50">
+        <!-- Header redesigned to match POS & ERP Hub reference designs -->
+        <header class="app-header fixed top-0 left-0 right-0 z-50 h-14">
             <div class="flex items-center justify-between h-full px-4">
                 <!-- Left: Logo and title -->
                 <div class="flex items-center">
@@ -482,57 +521,108 @@
                     </div>
                 </div>
 
+                <!-- Center: Topbar Search Input matching media_1789396154126.png -->
+                <div class="relative hidden md:flex items-center w-72 lg:w-96">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs pointer-events-none"></i>
+                    <input type="text" id="topbarSearchInput" placeholder="Search ..." class="w-full pl-8 pr-10 py-1.5 bg-white/10 dark:bg-neutral-800/80 border border-white/10 dark:border-neutral-700/60 rounded-lg text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors" oninput="syncInvTopbarSearch(this.value)">
+                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-neutral-400 font-mono bg-white/10 dark:bg-neutral-700 px-1.5 py-0.5 rounded pointer-events-none">⌘K</span>
+                </div>
+
                 <!-- Right: Controls -->
                 <div class="flex items-center gap-2">
-                    <!-- Theme Toggle -->
-                    <button onclick="toggleTheme()" class="theme-btn">
-                        <i class="fas fa-sun dark:hidden text-sm"></i>
-                        <i class="fas fa-moon hidden dark:block text-sm"></i>
-                    </button>
-
-                    <!-- Barcode Scanner -->
-                    <button onclick="openInvBarcodeScanner()" class="theme-btn" title="Barcode Scanner">
-                        <i class="fas fa-barcode text-sm"></i>
-                    </button>
-
-                    <!-- Customize -->
-                    <button onclick="openCustomize()" class="theme-btn" title="Customize">
-                        <i class="fas fa-palette text-sm"></i>
-                    </button>
-
-                    <!-- Network Status -->
-                    <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg">
-                        <span class="status-dot status-online" id="networkStatusDot"></span>
-                        <span class="text-xs text-neutral-300" id="networkText">Online</span>
-                    </div>
-                    
-                    <!-- Live Clock -->
-                    <span class="text-xs text-neutral-400 font-mono hidden md:block" id="liveClock">00:00:00</span>
-                    
                     <!-- Module Switcher -->
                     <div class="relative module-dropdown">
-                        <button onclick="toggleDropdown('moduleDropdown')" class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
-                            <i class="fas fa-th-large text-white text-sm"></i>
+                        <button onclick="toggleDropdown('moduleDropdown')" class="theme-btn" title="Apps">
+                            <i class="fas fa-th-large text-sm"></i>
                         </button>
                         <div class="dropdown" id="moduleDropdown">
                             <!-- Dynamically populated -->
                         </div>
                     </div>
 
-                    <!-- User Dropdown -->
+                    <!-- Customize -->
+                    <button onclick="openCustomize()" class="theme-btn" title="Customize">
+                        <i class="fas fa-palette text-sm"></i>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
                     <div class="relative">
-                        <button onclick="toggleDropdown('userDropdown')" class="flex items-center gap-2">
-                            <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-user text-white text-sm"></i>
+                        <button onclick="toggleDropdown('notifDropdown')" class="theme-btn relative" title="Notifications">
+                            <i class="fas fa-bell text-sm"></i>
+                            <span class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold" id="notifBadge">3</span>
+                        </button>
+                        <div class="dropdown" id="notifDropdown" style="width: 320px; right: 0;">
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-sm text-neutral-900 dark:text-neutral-100">Notifications</span>
+                                    <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full" id="notifCount">3</span>
+                                </div>
+                                <button onclick="markAllInvNotificationsRead()" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-medium">
+                                    <i class="fas fa-check text-[10px]"></i> Mark all read
+                                </button>
                             </div>
-                            <!-- Display full name instead of username -->
-                            <span class="text-white text-sm hidden sm:block" id="headerUserName">User</span>
+                            <div id="invNotifList" class="max-h-72 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800">
+                                <div class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition cursor-pointer flex gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 text-xs">
+                                        <i class="fas fa-boxes"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">Stock adjusted</p>
+                                        <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">Added 20 units to Cotton Plain White</p>
+                                        <p class="text-[10px] text-neutral-400 mt-0.5">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition cursor-pointer flex gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 text-xs">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">Low Stock Alert</p>
+                                        <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">Silk Charmeuse White is below threshold</p>
+                                        <p class="text-[10px] text-neutral-400 mt-0.5">1 day ago</p>
+                                    </div>
+                                </div>
+                                <div class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition cursor-pointer flex gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 text-xs">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">New Product Created</p>
+                                        <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">Bias Tape Cotton added by Super Admin</p>
+                                        <p class="text-[10px] text-neutral-400 mt-0.5">3 days ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-4 py-2.5 text-center border-t border-neutral-100 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50">
+                                <a href="erp-hub.html#notifications" class="text-xs text-neutral-600 dark:text-neutral-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium">View all notifications</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Clock -->
+                    <span class="text-xs text-neutral-300 font-mono hidden md:block" id="liveClock">00:00:00</span>
+
+                    <!-- Network Status Dot -->
+                    <div class="flex items-center" title="System Online">
+                        <span class="status-dot status-online" id="networkStatusDot"></span>
+                    </div>
+
+                    <!-- User Dropdown Pill matching media_1789396154126.png -->
+                    <div class="relative">
+                        <button onclick="toggleDropdown('userDropdown')" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition-colors">
+                            <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-semibold user-avatar">
+                                <span id="userInitial">C</span>
+                            </div>
+                            <div class="text-left hidden sm:block">
+                                <p class="text-xs font-medium text-white leading-tight" id="headerUserName">Caleb Magaju</p>
+                                <p class="text-[10px] text-neutral-400 leading-tight" id="headerUserRole">Super Admin</p>
+                            </div>
+                            <i class="fas fa-chevron-down text-[10px] text-neutral-400 ml-1"></i>
                         </button>
                         <div class="dropdown" id="userDropdown">
                             <div class="px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <!-- Show full name and role like POS -->
                                         <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100" id="dropdownUserName">User</p>
                                         <p class="text-xs text-neutral-500" id="dropdownUserRole">Role</p>
                                     </div>
@@ -608,25 +698,37 @@
 
             <!-- Products Tab -->
             <div id="products-tab" class="tab-content">
-                <!-- Controls -->
-                <div class="flex flex-col sm:flex-row gap-3 mb-4">
-                    <div class="flex-1 relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"></i>
-                        <input type="text" id="productSearch" placeholder="Search products..." class="input-field pl-10" oninput="filterProducts()">
+                <!-- Controls: Category Chips + View Toggles & Add Product Button matching media_1789396154126.png -->
+                <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-6">
+                    <!-- Mobile Search (hidden on desktop where topbar search is used) -->
+                    <div class="md:hidden relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs"></i>
+                        <input type="text" id="productSearch" placeholder="Search products..." class="input-field pl-9 py-2 text-xs w-full" oninput="syncMobileSearch(this.value)">
                     </div>
-                    <select id="categoryFilter" class="input-field w-full sm:w-48" onchange="filterProducts()">
+
+                    <!-- Category Chips -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1" id="categoryChipsContainer">
+                        <button type="button" onclick="selectCategoryChip('')" class="category-chip active" data-category="">All</button>
+                    </div>
+
+                    <!-- Hidden select for compatibility -->
+                    <select id="categoryFilter" class="hidden" onchange="filterProducts()">
                         <option value="">All Categories</option>
                     </select>
-                    <div class="flex gap-2">
-                        <button onclick="setView('grid')" id="gridViewBtn" class="view-btn active">
-                            <i class="fas fa-th"></i>
-                        </button>
-                        <button onclick="setView('list')" id="listViewBtn" class="view-btn">
-                            <i class="fas fa-list"></i>
-                        </button>
-                        <button onclick="openModal('addProductModal')" class="h-10 px-4 btn-primary rounded-lg font-medium flex items-center gap-2">
-                            <i class="fas fa-plus"></i>
-                            <span class="hidden sm:inline">Add Product</span>
+
+                    <!-- View Toggles & Add Product Button -->
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <div class="flex items-center bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-0.5">
+                            <button onclick="setView('grid')" id="gridViewBtn" class="p-1.5 rounded-md text-xs transition-colors bg-blue-600 text-white" title="Grid view">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                            <button onclick="setView('list')" id="listViewBtn" class="p-1.5 rounded-md text-xs transition-colors text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200" title="List view">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                        </div>
+                        <button onclick="openModal('addProductModal')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors">
+                            <i class="fas fa-plus text-xs"></i>
+                            <span>Add Product</span>
                         </button>
                     </div>
                 </div>
@@ -1423,10 +1525,13 @@
                 return;
             }
             
-            const displayName = currentUser.full_name || currentUser.name || currentUser.username;
-            document.getElementById('headerUserName').textContent = displayName;
-            document.getElementById('dropdownUserName').textContent = displayName;
-            document.getElementById('dropdownUserRole').textContent = currentUser.role || 'User';
+            const displayName = currentUser.full_name || currentUser.name || currentUser.username || 'User';
+            const initial = displayName.charAt(0).toUpperCase();
+            if (document.getElementById('userInitial')) document.getElementById('userInitial').textContent = initial;
+            if (document.getElementById('headerUserName')) document.getElementById('headerUserName').textContent = displayName;
+            if (document.getElementById('headerUserRole')) document.getElementById('headerUserRole').textContent = currentUser.role || 'User';
+            if (document.getElementById('dropdownUserName')) document.getElementById('dropdownUserName').textContent = displayName;
+            if (document.getElementById('dropdownUserRole')) document.getElementById('dropdownUserRole').textContent = currentUser.role || 'User';
             document.getElementById('settingsName').value = currentUser.full_name || currentUser.name || '';
             document.getElementById('settingsEmail').value = currentUser.email || '';
             document.getElementById('settingsPhone').value = currentUser.phone || currentUser.mobile || '';
@@ -1581,25 +1686,96 @@
             set('tabCountLowStock', lowStockItems.length);
         }
 
-        // Populate Selects
+        // Populate Selects & Category Chips
         function populateFilters() {
             const categoryOptions = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
             const unitOptions = units.map(u => `<option value="${u.id}">${u.name} (${u.abbreviation})</option>`).join('');
 
-            document.getElementById('productCategory').innerHTML = '<option value="">Select...</option>' + categoryOptions;
-            document.getElementById('productUnit').innerHTML = '<option value="">Select...</option>' + unitOptions;
-            document.getElementById('editProductCategory').innerHTML = '<option value="">Select...</option>' + categoryOptions;
-            document.getElementById('editProductUnit').innerHTML = '<option value="">Select...</option>' + unitOptions;
-            document.getElementById('categoryFilter').innerHTML = '<option value="">All Categories</option>' + categoryOptions;
+            if (document.getElementById('productCategory')) document.getElementById('productCategory').innerHTML = '<option value="">Select...</option>' + categoryOptions;
+            if (document.getElementById('productUnit')) document.getElementById('productUnit').innerHTML = '<option value="">Select...</option>' + unitOptions;
+            if (document.getElementById('editProductCategory')) document.getElementById('editProductCategory').innerHTML = '<option value="">Select...</option>' + categoryOptions;
+            if (document.getElementById('editProductUnit')) document.getElementById('editProductUnit').innerHTML = '<option value="">Select...</option>' + unitOptions;
+            if (document.getElementById('categoryFilter')) document.getElementById('categoryFilter').innerHTML = '<option value="">All Categories</option>' + categoryOptions;
+
+            renderCategoryChips();
         }
 
-        // View Toggle
+        // Horizontal Category Chips matching media_1789396154126.png
+        function renderCategoryChips() {
+            const container = document.getElementById('categoryChipsContainer');
+            if (!container) return;
+            const currentCat = document.getElementById('categoryFilter') ? document.getElementById('categoryFilter').value : '';
+            let html = `<button type="button" onclick="selectCategoryChip('')" class="category-chip ${!currentCat ? 'active' : ''}" data-category="">All</button>`;
+            categories.forEach(c => {
+                const isActive = currentCat == c.id;
+                html += `<button type="button" onclick="selectCategoryChip('${c.id}')" class="category-chip ${isActive ? 'active' : ''}" data-category="${c.id}">${c.name}</button>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function selectCategoryChip(catId) {
+            const select = document.getElementById('categoryFilter');
+            if (select) select.value = catId;
+            renderCategoryChips();
+            filterProducts();
+        }
+
+        // Topbar and Mobile Search synchronization
+        function syncInvTopbarSearch(val) {
+            const mobSearch = document.getElementById('productSearch');
+            if (mobSearch) mobSearch.value = val;
+            filterProducts();
+        }
+
+        function syncMobileSearch(val) {
+            const topSearch = document.getElementById('topbarSearchInput');
+            if (topSearch) topSearch.value = val;
+            filterProducts();
+        }
+
+        // Notifications mark all read
+        function markAllInvNotificationsRead() {
+            const badge = document.getElementById('notifBadge');
+            const count = document.getElementById('notifCount');
+            if (badge) badge.style.display = 'none';
+            if (count) count.textContent = '0';
+            const list = document.getElementById('invNotifList');
+            if (list) {
+                list.innerHTML = `
+                    <div class="p-4 text-center text-xs text-neutral-400">
+                        <i class="fas fa-check-circle text-emerald-500 text-lg mb-1 block"></i>
+                        All caught up! No unread notifications.
+                    </div>
+                `;
+            }
+            showToast('All notifications marked as read', 'success');
+        }
+
+        // Keyboard shortcut ⌘K / Ctrl+K
+        document.addEventListener('keydown', function(e) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                const topSearch = document.getElementById('topbarSearchInput');
+                if (topSearch) topSearch.focus();
+            }
+        });
+
+        // View Toggle matching media_1789396154126.png
         function setView(view) {
             currentView = view;
             localStorage.setItem('flowtive_inventory_view', view);
 
-            document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
-            document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+            const gridBtn = document.getElementById('gridViewBtn');
+            const listBtn = document.getElementById('listViewBtn');
+            if (gridBtn && listBtn) {
+                if (view === 'grid') {
+                    gridBtn.className = 'p-1.5 rounded-md text-xs transition-colors bg-blue-600 text-white';
+                    listBtn.className = 'p-1.5 rounded-md text-xs transition-colors text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200';
+                } else {
+                    gridBtn.className = 'p-1.5 rounded-md text-xs transition-colors text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200';
+                    listBtn.className = 'p-1.5 rounded-md text-xs transition-colors bg-blue-600 text-white';
+                }
+            }
 
             if (view === 'grid') {
                 document.getElementById('productsGrid').classList.remove('hidden');
@@ -1628,11 +1804,13 @@
 
         // Render Products
         function renderProducts() {
-            const search = document.getElementById('productSearch').value.toLowerCase();
-            const categoryId = document.getElementById('categoryFilter').value;
+            const topSearch = document.getElementById('topbarSearchInput') ? document.getElementById('topbarSearchInput').value : '';
+            const mobSearch = document.getElementById('productSearch') ? document.getElementById('productSearch').value : '';
+            const search = (topSearch || mobSearch || '').toLowerCase().trim();
+            const categoryId = document.getElementById('categoryFilter') ? document.getElementById('categoryFilter').value : '';
 
             const filtered = products.filter(p => {
-                const matchSearch = p.name.toLowerCase().includes(search);
+                const matchSearch = !search || p.name.toLowerCase().includes(search) || (p.description && p.description.toLowerCase().includes(search));
                 const matchCategory = !categoryId || p.category_id == categoryId;
                 return matchSearch && matchCategory;
             });
@@ -1663,13 +1841,15 @@
             const highlightLow = prefs.highlightLow ?? true;
 
             container.innerHTML = items.map(p => {
-                const stock = p.stock_quantity || p.current_stock || 0;
-                const threshold = p.low_stock_threshold || p.minimum_stock || 10;
+                const stock = parseFloat(p.stock_quantity || p.current_stock || 0);
+                const threshold = parseFloat(p.low_stock_threshold || p.minimum_stock || 10);
                 const isLow = stock <= threshold;
-                const stockPercent = Math.min(100, (stock / (threshold * 3 || 30)) * 100);
                 const category = categories.find(c => c.id == p.category_id);
                 const hasImage = p.image || p.image_url;
                 const colorMeta = [p.description_color || p.color, p.description_size || p.measurement].filter(Boolean).join(' · ');
+
+                // 3-decimal formatted stock matching media_1789396154126.png (e.g. 610.000 in stock)
+                const formattedStock = Number.isInteger(stock) ? `${stock}.000` : stock.toFixed(3);
 
                 const imageContent = !showImages
                     ? `<i class="fas fa-box text-3xl text-neutral-300 dark:text-neutral-600"></i>`
@@ -1677,27 +1857,37 @@
                         ? `<img src="${p.image || p.image_url}" class="w-full h-full object-cover" alt="${p.name}">`
                         : `<i class="fas fa-box text-3xl text-neutral-300 dark:text-neutral-600"></i>`;
 
+                // Subtle red border if low stock matching media_1789396154126.png
+                const borderClass = (highlightLow && isLow) 
+                    ? 'border-red-200 dark:border-red-900/60 shadow-sm' 
+                    : 'border-neutral-200 dark:border-neutral-800';
+
                 return `
-                    <div class="product-card p-4 ${highlightLow && isLow ? 'border-red-300 dark:border-red-700' : ''}">
-                        <div class="aspect-square bg-neutral-100 dark:bg-neutral-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                            ${imageContent}
+                    <div class="product-card bg-white dark:bg-neutral-900 rounded-xl border ${borderClass} p-3 flex flex-col justify-between transition hover:shadow-md">
+                        <div>
+                            <div class="aspect-square bg-[#f5f5f5] dark:bg-neutral-800 rounded-lg mb-2.5 flex items-center justify-center overflow-hidden">
+                                ${imageContent}
+                            </div>
+                            <h3 class="font-semibold text-neutral-900 dark:text-neutral-100 truncate text-xs sm:text-sm leading-tight" title="${p.name}">${p.name}</h3>
+                            <p class="text-[11px] text-neutral-500 truncate mt-0.5">${category?.name || 'Uncategorized'}</p>
+                            ${showColorMeta && colorMeta ? `<p class="text-[10px] truncate font-medium text-emerald-600 dark:text-emerald-400">${colorMeta}</p>` : ''}
+                            <p class="text-[11px] text-neutral-400 truncate mt-0.5">${p.description || ''}</p>
                         </div>
-                        <h3 class="font-medium text-neutral-900 dark:text-neutral-100 truncate text-sm leading-tight">${p.name}</h3>
-                        ${showColorMeta && colorMeta ? `<p class="text-xs truncate mt-0.5 font-medium" style="color:#059669">${colorMeta}</p>` : ''}
-                        <p class="text-xs text-neutral-500 truncate">${category?.name || 'Uncategorized'}</p>
-                        ${p.description ? `<p class="text-xs text-neutral-400 truncate mt-0.5">${p.description}</p>` : ''}
-                        <div class="flex items-center justify-between mt-2">
-                            <span class="font-semibold text-neutral-900 dark:text-neutral-100 text-sm">${CURRENCY} ${parseFloat(p.selling_price).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-                            ${showStock ? `<span class="text-xs ${highlightLow && isLow ? 'text-red-500 font-medium' : 'text-neutral-500'}">${stock} in stock</span>` : ''}
-                        </div>
-                        ${showStock ? `<div class="stock-bar mt-2"><div class="stock-bar-fill ${highlightLow && isLow ? 'bg-red-500' : 'bg-emerald-500'}" style="width: ${stockPercent}%"></div></div>` : ''}
-                        <div class="flex gap-2 mt-3">
-                            <button onclick="openEditProduct(${p.id});openModal('editProductModal')" class="flex-1 px-2 py-1.5 text-xs border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
-                                <i class="fas fa-pen mr-1"></i>Edit
-                            </button>
-                            <button onclick="openModal('stockModal'); openStockModal(${p.id})" class="flex-1 px-2 py-1.5 text-xs border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
-                                <i class="fas fa-boxes mr-1"></i>Stock
-                            </button>
+                        <div class="mt-2.5 pt-1">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-bold text-neutral-900 dark:text-white">${CURRENCY} ${parseFloat(p.selling_price).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                                ${showStock ? `<span class="text-[11px] ${isLow ? 'text-red-500 font-medium' : 'text-neutral-500 font-medium'}">${formattedStock} in stock</span>` : ''}
+                            </div>
+                            <!-- Colored divider line matching media_1789396154126.png: red if low stock, emerald if healthy -->
+                            <div class="h-[2px] w-full mt-1.5 ${isLow ? 'bg-red-500' : 'bg-emerald-500'} rounded-full"></div>
+                            <div class="grid grid-cols-2 gap-2 mt-2.5">
+                                <button type="button" onclick="openEditProduct(${p.id});openModal('editProductModal')" class="py-1.5 px-2 text-xs font-medium border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 flex items-center justify-center gap-1 transition-colors">
+                                    <i class="fas fa-pen text-[10px]"></i><span>Edit</span>
+                                </button>
+                                <button type="button" onclick="openModal('stockModal'); openStockModal(${p.id})" class="py-1.5 px-2 text-xs font-medium border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 flex items-center justify-center gap-1 transition-colors">
+                                    <i class="fas fa-download text-[10px]"></i><span>Stock</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -2849,9 +3039,13 @@
         }
 
         function updateUserDisplay() {
-            const displayName = currentUser.full_name || currentUser.name || currentUser.username;
-            document.getElementById('headerUserName').textContent = displayName;
-            document.getElementById('dropdownUserName').textContent = displayName;
+            const displayName = currentUser.full_name || currentUser.name || currentUser.username || 'User';
+            const initial = displayName.charAt(0).toUpperCase();
+            if (document.getElementById('userInitial')) document.getElementById('userInitial').textContent = initial;
+            if (document.getElementById('headerUserName')) document.getElementById('headerUserName').textContent = displayName;
+            if (document.getElementById('headerUserRole')) document.getElementById('headerUserRole').textContent = currentUser.role || 'User';
+            if (document.getElementById('dropdownUserName')) document.getElementById('dropdownUserName').textContent = displayName;
+            if (document.getElementById('dropdownUserRole')) document.getElementById('dropdownUserRole').textContent = currentUser.role || 'User';
         }
     </script>
 </body>

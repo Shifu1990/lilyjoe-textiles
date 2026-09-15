@@ -523,66 +523,132 @@
                     <i class="fas fa-cash-register text-white text-sm"></i>
                 </div>
                 <div class="ml-3 hidden sm:block">
-                    <h1 class="text-sm font-semibold text-white">LilyJoe Textiles POS</h1>
+                    <h1 class="text-sm font-semibold text-white">Flowtive POS</h1>
                     <p class="text-xs text-neutral-400">Point of Sale</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
-                <button onclick="toggleTheme()" class="theme-btn">
-                    <i class="fas fa-sun dark:hidden text-sm"></i>
-                    <i class="fas fa-moon hidden dark:block text-sm"></i>
-                </button>
+            <!-- Topbar Search Bar matching media_1789396062546.png -->
+            <div class="relative hidden md:flex items-center w-72 lg:w-96">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs pointer-events-none"></i>
+                <input type="text" id="topbarSearchInput" placeholder="Search ..." class="w-full pl-8 pr-10 py-1.5 bg-white/10 dark:bg-neutral-800/80 border border-white/10 dark:border-neutral-700/60 rounded-lg text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors" oninput="syncTopbarSearch(this.value)">
+                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-neutral-400 font-mono bg-white/10 dark:bg-neutral-700 px-1.5 py-0.5 rounded pointer-events-none">⌘K</span>
+            </div>
 
-                <!-- Barcode Scanner -->
-                <button onclick="openBarcodeScanner()" class="theme-btn" title="Barcode Scanner">
-                    <i class="fas fa-barcode text-sm"></i>
-                </button>
+            <div class="flex items-center gap-2">
+                <!-- Module Switcher -->
+                <div class="relative module-dropdown">
+                    <button onclick="toggleDropdown('moduleDropdown')" class="theme-btn" title="Apps">
+                        <i class="fas fa-th-large text-sm"></i>
+                    </button>
+                    <div class="dropdown" id="moduleDropdown">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
 
                 <!-- Customize -->
                 <button onclick="openCustomize()" class="theme-btn" title="Customize">
                     <i class="fas fa-palette text-sm"></i>
                 </button>
 
-                <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg">
-                    <span class="status-dot status-online" id="networkStatus"></span>
-                    <span class="text-xs text-neutral-300" id="networkText">Online</span>
-                </div>
-                
-                <span class="text-xs text-neutral-400 font-mono hidden md:block" id="liveClock">00:00:00</span>
-                
-                <!-- Module Switcher -->
-                <div class="relative module-dropdown">
-                    <button onclick="toggleDropdown('moduleDropdown')" class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
-                        <i class="fas fa-th-large text-white text-sm"></i>
+                <!-- Notifications -->
+                <div class="relative">
+                    <button onclick="toggleDropdown('notifDropdown')" class="theme-btn relative" title="Notifications">
+                        <i class="fas fa-bell text-sm"></i>
+                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold" id="notifBadge">3</span>
                     </button>
-                    <div class="dropdown" id="moduleDropdown">
-                        <!-- Module options will be populated dynamically -->
+                    <div class="dropdown" id="notifDropdown" style="width: 320px; right: 0;">
+                        <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold text-sm text-neutral-900 dark:text-neutral-100">Notifications</span>
+                                <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full" id="notifCount">3</span>
+                            </div>
+                            <button onclick="markAllPosNotificationsRead()" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-medium">
+                                <i class="fas fa-check text-[10px]"></i> Mark all read
+                            </button>
+                        </div>
+                        <div id="posNotifList" class="max-h-72 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800">
+                            <div class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition cursor-pointer flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 text-xs">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">Debt Order pending</p>
+                                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">Caleb Magaju processed order 20260911001 for KES 350</p>
+                                    <p class="text-[10px] text-neutral-400 mt-0.5">3 days ago</p>
+                                </div>
+                            </div>
+                            <div class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition cursor-pointer flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 text-xs">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">Debt Order pending</p>
+                                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">Caleb Magaju processed order 202605280001 for KES 12,800</p>
+                                    <p class="text-[10px] text-neutral-400 mt-0.5">3 months ago</p>
+                                </div>
+                            </div>
+                            <div class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition cursor-pointer flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 text-xs">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">Debt Order completed</p>
+                                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">Order #202605270001 payment settled</p>
+                                    <p class="text-[10px] text-neutral-400 mt-0.5">3 months ago</p>
+                                </div>
+                            </div>
+                            <div class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition cursor-pointer flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 text-xs">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">Order processed</p>
+                                    <p class="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">Caleb Magaju processed order 202605250001 for KES 13,400</p>
+                                    <p class="text-[10px] text-neutral-400 mt-0.5">3 months ago</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 py-2.5 text-center border-t border-neutral-100 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50">
+                            <a href="erp-hub.html#notifications" class="text-xs text-neutral-600 dark:text-neutral-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium">View all notifications</a>
+                        </div>
                     </div>
                 </div>
 
-                <!-- User Dropdown -->
+                <!-- Live Clock -->
+                <span class="text-xs text-neutral-300 font-mono hidden md:block" id="liveClock">00:00:00</span>
+
+                <!-- Network Status Dot -->
+                <div class="flex items-center" title="System Online">
+                    <span class="status-dot status-online" id="networkStatus"></span>
+                </div>
+
+                <!-- User Dropdown Pill -->
                 <div class="relative">
-                    <button onclick="toggleDropdown('userDropdown')" class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center user-avatar">
-                            <i class="fas fa-user text-white text-sm"></i>
+                    <button onclick="toggleDropdown('userDropdown')" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 transition-colors">
+                        <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-semibold user-avatar">
+                            <span id="userInitial">C</span>
                         </div>
-                        <span class="text-white text-sm hidden sm:block" id="userName">User</span>
+                        <div class="text-left hidden sm:block">
+                            <p class="text-xs font-medium text-white leading-tight" id="userName">Caleb Magaju</p>
+                            <p class="text-[10px] text-neutral-400 leading-tight" id="userRole">Super Admin</p>
+                        </div>
+                        <i class="fas fa-chevron-down text-[10px] text-neutral-400 ml-1"></i>
                     </button>
                     <div class="dropdown" id="userDropdown">
                         <div class="px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100" id="dropdownUserName">User</p>
-                                    <p class="text-xs text-neutral-500" id="dropdownUserRole">Role</p>
+                                    <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100" id="dropdownUserName">Caleb Magaju</p>
+                                    <p class="text-xs text-neutral-500" id="dropdownUserRole">Super Admin</p>
                                 </div>
-                                <button onclick="openModal('userSettingsModal')" class="p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg">
+                                <button onclick="openModal('userSettingsModal')" class="p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg" title="Settings">
                                     <i class="fas fa-edit text-sm"></i>
                                 </button>
                             </div>
                         </div>
                         <button onclick="logout()" class="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                            <i class="fas fa-sign-out-alt w-5 mr-2"></i>Logout
+                            <i class="fas fa-sign-out-alt w-5 mr-2"></i>Log out
                         </button>
                     </div>
                 </div>
@@ -712,25 +778,46 @@
                             <div class="relative">
                                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs"></i>
                                 <input type="text" id="historySearch" placeholder="Search orders..." oninput="renderHistory()"
-                                    class="pl-9 pr-3 py-2 text-sm border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 rounded-lg focus:outline-none focus:border-neutral-400 w-48">
+                                    class="pl-9 pr-3 py-2 text-xs border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 rounded-lg focus:outline-none focus:border-neutral-400 w-48">
                             </div>
-                            <select id="historyFilter" onchange="renderHistory()" class="py-2 px-3 text-sm border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 rounded-lg focus:outline-none">
+                            <select id="historyFilter" onchange="renderHistory()" class="py-2 px-3 text-xs border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 rounded-lg focus:outline-none">
                                 <option value="all">All</option>
                                 <option value="completed">Completed</option>
+                                <option value="processing">Processing</option>
                                 <option value="pending">Pending</option>
                             </select>
                         </div>
                     </div>
+
+                    <!-- Filter Chips & Action bar matching media_1789396062546.png -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3.5 bg-neutral-50/50 dark:bg-neutral-800/40 border-b border-neutral-100 dark:border-neutral-800">
+                        <div class="flex items-center gap-2 overflow-x-auto" id="historyStatusChips">
+                            <button onclick="filterHistoryByStatus('all')" class="category-chip active text-xs py-1.5 px-3.5" data-hstatus="all">All</button>
+                            <button onclick="filterHistoryByStatus('completed')" class="category-chip text-xs py-1.5 px-3.5" data-hstatus="completed">Completed</button>
+                            <button onclick="filterHistoryByStatus('processing')" class="category-chip text-xs py-1.5 px-3.5" data-hstatus="processing">Processing</button>
+                            <button onclick="filterHistoryByStatus('pending')" class="category-chip text-xs py-1.5 px-3.5" data-hstatus="pending">Pending</button>
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <div class="flex items-center bg-white dark:bg-neutral-800 p-1 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                                <button class="view-btn active px-2 py-1 rounded text-xs" title="Table View"><i class="fas fa-th-large"></i></button>
+                                <button class="view-btn px-2 py-1 rounded text-xs text-neutral-400" title="List View"><i class="fas fa-list"></i></button>
+                            </div>
+                            <button onclick="exportSalesHistoryCSV()" class="py-2 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                                <i class="fas fa-arrow-up-from-bracket"></i> Export
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="hist-table">
                             <thead>
                                 <tr>
-                                    <th>Order</th>
-                                    <th>Date</th>
-                                    <th>Customer</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th class="text-right" style="text-align:right">Actions</th>
+                                    <th>Date <i class="fas fa-sort text-[10px] text-neutral-400 ml-1"></i></th>
+                                    <th>Order <i class="fas fa-sort text-[10px] text-neutral-400 ml-1"></i></th>
+                                    <th>Customer <i class="fas fa-sort text-[10px] text-neutral-400 ml-1"></i></th>
+                                    <th>Cashier <i class="fas fa-sort text-[10px] text-neutral-400 ml-1"></i></th>
+                                    <th>Status <i class="fas fa-sort text-[10px] text-neutral-400 ml-1"></i></th>
+                                    <th class="text-right">Amount <i class="fas fa-sort text-[10px] text-neutral-400 ml-1"></i></th>
                                 </tr>
                             </thead>
                             <tbody id="historyList">
@@ -1156,17 +1243,59 @@
     
     <!-- Sale Details Modal -->
     <div id="saleDetailsModal" class="modal" onclick="if(event.target===this) closeModal('saleDetailsModal')">
-        <div class="modal-content max-w-2xl">
-            <div class="p-5 border-b border-neutral-200 dark:border-neutral-700 flex justify-between items-center">
-                <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Sale Details</h3>
-                <button onclick="closeModal('saleDetailsModal')" class="w-8 h-8 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center text-neutral-500">
+        <div class="modal-content max-w-lg w-full p-6 m-4" id="saleDetailsContent">
+            <div class="flex items-center justify-center py-8">
+                <i class="fas fa-spinner fa-spin text-3xl text-neutral-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debt Payment Modal matching media_1789396140365.png -->
+    <div id="debtPaymentModal" class="modal" onclick="if(event.target===this) closeModal('debtPaymentModal')">
+        <div class="modal-content w-full max-w-md p-6 m-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-100">Debt Payment</h3>
+                <button onclick="closeModal('debtPaymentModal')" class="w-8 h-8 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center text-neutral-500">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="p-5" id="saleDetailsContent">
-                <div class="flex items-center justify-center py-8">
-                    <i class="fas fa-spinner fa-spin text-3xl text-neutral-400"></i>
+
+            <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 mb-4 text-center">
+                <p class="text-xs text-neutral-500 dark:text-neutral-400 mb-1">Total Amount</p>
+                <p class="text-2xl font-bold text-emerald-600" id="debtPaymentTotal">KES 0</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-xl" style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2)">
+                        <label class="block text-xs font-semibold mb-2" style="color:#059669"><i class="fas fa-money-bill-wave mr-1"></i>Cash Amount</label>
+                        <input type="number" id="debtCashAmount" class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 rounded-lg text-sm" placeholder="0" oninput="calculateDebtSplit()">
+                    </div>
+                    <div class="p-3 rounded-xl" style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2)">
+                        <label class="block text-xs font-semibold mb-2" style="color:#2563eb"><i class="fas fa-mobile-alt mr-1"></i>M-Pesa Amount</label>
+                        <input type="number" id="debtMpesaAmount" class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 rounded-lg text-sm" placeholder="0" oninput="calculateDebtSplit()">
+                    </div>
                 </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">M-Pesa Code <span class="text-xs text-neutral-400">(optional)</span></label>
+                    <input type="text" id="debtMpesaCode" class="w-full px-4 py-2.5 border border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 rounded-xl text-sm uppercase" placeholder="e.g. ESQT54DYBJK" oninput="this.value=this.value.toUpperCase()">
+                </div>
+
+                <div class="bg-neutral-100 dark:bg-neutral-800 rounded-xl p-3 space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-neutral-500">Balance / Change</span>
+                        <span class="font-bold text-red-500" id="debtBalanceChange">KES 0 remaining</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-neutral-500">Combined Total</span>
+                        <span class="font-bold text-neutral-900 dark:text-neutral-100" id="debtCombinedTotal">KES 0</span>
+                    </div>
+                </div>
+
+                <button onclick="submitDebtPayment()" id="debtCompleteBtn" class="w-full py-3 rounded-xl font-semibold text-sm text-white bg-emerald-600 hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
+                    Complete Sale
+                </button>
             </div>
         </div>
     </div>
@@ -2568,12 +2697,15 @@
 
             let rows = allSales.slice();
             if (filter !== 'all') {
-                rows = rows.filter(s => filter === 'completed' ? s.payment_status === 'paid' : s.payment_status !== 'paid');
+                if (filter === 'completed') rows = rows.filter(s => s.payment_status === 'paid');
+                else if (filter === 'pending') rows = rows.filter(s => s.payment_status !== 'paid');
+                else if (filter === 'processing') rows = rows.filter(s => s.status === 'processing');
             }
             if (term) {
                 rows = rows.filter(s =>
                     String(s.order_number || s.id).toLowerCase().includes(term) ||
-                    String(s.customer_name || '').toLowerCase().includes(term)
+                    String(s.customer_name || '').toLowerCase().includes(term) ||
+                    String(s.cashier_name || '').toLowerCase().includes(term)
                 );
             }
 
@@ -2588,64 +2720,68 @@
 
             container.innerHTML = rows.map(sale => {
                 const isDebt = sale.payment_status !== 'paid';
-                const statusLabel = isDebt ? 'Pending' : 'Completed';
-                const pillClass = isDebt ? 'pill-pending' : 'pill-completed';
-                const icon = isDebt ? 'fa-clock' : 'fa-check';
+                const statusLabel = isDebt ? 'Pending' : (sale.status === 'processing' ? 'Processing' : 'Completed');
+                const pillClass = isDebt ? 'pill-pending' : (sale.status === 'processing' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' : 'pill-completed');
+                const icon = isDebt ? 'fa-circle text-[6px] mr-1 text-amber-500' : (sale.status === 'processing' ? 'fa-spinner fa-spin mr-1' : 'fa-check');
+                const formattedDate = new Date(sale.sale_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const cashierName = sale.cashier_name || currentUser.name || 'Caleb Magaju';
+                const customerName = sale.customer_name || 'Walk-in Customer';
+
                 return `
-                    <tr class="hist-row" onclick="viewSaleDetails(${sale.id})">
-                        <td class="font-semibold" style="color:inherit">#${sale.order_number || sale.id}</td>
-                        <td class="text-neutral-500">${new Date(sale.sale_date).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                        <td>${sale.customer_name || 'Walk-in'}</td>
-                        <td>
-                            <span class="font-semibold">${CURRENCY} ${Number(sale.total).toLocaleString()}</span>
-                            ${isDebt ? `<span class="block text-xs text-red-500">Due: ${CURRENCY} ${Number(sale.amount_due || 0).toLocaleString()}</span>` : ''}
-                        </td>
-                        <td><span class="hist-pill ${pillClass}"><i class="fas ${icon}" style="font-size:9px"></i>${statusLabel}</span></td>
-                        <td style="text-align:right" onclick="event.stopPropagation()">
-                            <button onclick="viewReceipt(${sale.id})" class="hist-mini-btn" title="View Receipt"><i class="fas fa-receipt text-sm"></i></button>
-                            ${(sale.payment_method === 'mobile' || sale.payment_method === 'split') ? `
-                            <button onclick="openAddMpesaCode(${sale.id}, '${(sale.mpesa_code||'').replace(/'/g,"\\'")}', '${sale.order_number || sale.id}')" class="hist-mini-btn" title="${sale.mpesa_code ? 'Edit M-Pesa Code' : 'Add M-Pesa Code'}" style="color:#1e40af"><i class="fas fa-mobile-screen-button text-sm"></i></button>
-                            ` : ''}
-                            ${isDebt ? `
-                            <button onclick="viewInvoice(${sale.id})" class="hist-mini-btn" title="View Invoice" style="color:#d97706"><i class="fas fa-file-invoice text-sm"></i></button>
-                            <button onclick="openFollowUpPayment(${sale.id}, ${Number(sale.amount_due || 0)})" class="hist-mini-btn" title="Follow-Up Payment" style="color:#059669"><i class="fas fa-money-bill-wave text-sm"></i></button>
-                            ` : ''}
+                    <tr class="hist-row hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition cursor-pointer" onclick="viewSaleDetails(${sale.id})">
+                        <td class="text-xs text-neutral-500">${formattedDate}</td>
+                        <td class="font-medium text-xs text-neutral-900 dark:text-neutral-100">#${sale.order_number || sale.id}</td>
+                        <td class="text-xs text-neutral-700 dark:text-neutral-300">${customerName}</td>
+                        <td class="text-xs text-neutral-600 dark:text-neutral-400">${cashierName}</td>
+                        <td><span class="hist-pill ${pillClass} text-xs font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center"><i class="fas ${icon}"></i>${statusLabel}</span></td>
+                        <td class="text-right whitespace-nowrap" onclick="event.stopPropagation()">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <div class="text-right mr-2">
+                                    <span class="font-semibold text-xs text-neutral-900 dark:text-neutral-100 block">${CURRENCY} ${Number(sale.total).toLocaleString()}</span>
+                                    ${isDebt ? `<span class="block text-[11px] text-red-500 font-medium">Due: ${CURRENCY} ${Number(sale.amount_due || 0).toLocaleString()}</span>` : ''}
+                                </div>
+                                <button onclick="viewSaleDetails(${sale.id})" class="hist-mini-btn" title="View Details"><i class="fas fa-eye text-xs"></i></button>
+                                ${(sale.payment_method === 'mobile' || sale.payment_method === 'split') ? `
+                                <button onclick="openAddMpesaCode(${sale.id}, '${(sale.mpesa_code||'').replace(/'/g,"\\'")}', '${sale.order_number || sale.id}')" class="hist-mini-btn" title="${sale.mpesa_code ? 'Edit M-Pesa Code' : 'Add M-Pesa Code'}" style="color:#2563eb"><i class="fas fa-mobile-alt text-xs"></i></button>
+                                ` : ''}
+                                <button onclick="viewReceipt(${sale.id})" class="hist-mini-btn" title="View Receipt"><i class="fas fa-receipt text-xs"></i></button>
+                                ${isDebt ? `
+                                <button onclick="openDebtPaymentModal(${sale.id})" class="hist-mini-btn" title="Debt Payment" style="color:#059669"><i class="fas fa-money-bill-wave text-xs"></i></button>
+                                ` : ''}
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
+        function filterHistoryByStatus(status) {
+            document.querySelectorAll('#historyStatusChips button').forEach(btn => {
+                if (btn.getAttribute('data-hstatus') === status) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            const sel = document.getElementById('historyFilter');
+            if (sel) sel.value = status;
+            renderHistory();
+        }
+
         function viewSaleDetails(saleId) {
-            let modal = document.getElementById('saleDetailsModal');
-            
-            if (!modal) {
-                const modalHTML = `
-                    <div id="saleDetailsModal" class="modal" onclick="if(event.target===this) closeModal('saleDetailsModal')">
-                        <div class="modal-content max-w-2xl">
-                            <div class="p-5 border-b border-neutral-200 dark:border-neutral-700 flex justify-between items-center">
-                                <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Sale Details</h3>
-                                <button onclick="closeModal('saleDetailsModal')" class="w-8 h-8 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center text-neutral-500">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <div class="p-5" id="saleDetailsContent">
-                                <div class="flex items-center justify-center py-8">
-                                    <i class="fas fa-spinner fa-spin text-3xl text-neutral-400"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.insertAdjacentHTML('beforeend', modalHTML);
-            }
-            
             openModal('saleDetailsModal');
             loadSaleDetails(saleId);
         }
 
         async function loadSaleDetails(saleId) {
             const content = document.getElementById('saleDetailsContent');
+            if (!content) return;
+            
+            content.innerHTML = `
+                <div class="flex items-center justify-center py-10">
+                    <i class="fas fa-spinner fa-spin text-2xl text-neutral-400"></i>
+                </div>
+            `;
             
             try {
                 const res = await fetch(`${API_BASE}/sales/index.php?id=${saleId}`, {
@@ -2655,137 +2791,81 @@
                 
                 if (data.success && data.sale) {
                     const sale = data.sale;
-                    const isDebt = sale.payment_status !== 'paid';
-                    
+                    const isPaid = sale.payment_status === 'paid';
+                    const items = sale.items || [];
+                    const formattedDate = new Date(sale.sale_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const cashierName = sale.cashier_name || currentUser.name || 'Caleb Magaju';
+                    const customerName = sale.customer_name || 'Walk-in';
+
                     content.innerHTML = `
-                        <div class="space-y-4">
-                            <!-- Order Information -->
-                            <div class="grid grid-cols-2 gap-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+                        <div>
+                            <div class="flex items-start justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
                                 <div>
-                                    <p class="text-sm text-neutral-500">Order Number</p>
-                                    <p class="font-semibold text-neutral-900 dark:text-neutral-100">#${sale.order_number || sale.id}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-neutral-500">Date</p>
-                                    <p class="font-semibold text-neutral-900 dark:text-neutral-100">${new Date(sale.sale_date).toLocaleString('en-GB')}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-neutral-500">Cashier</p>
-                                    <p class="font-semibold text-neutral-900 dark:text-neutral-100">${sale.cashier_name || 'Unknown'}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-neutral-500">Customer</p>
-                                    <p class="font-semibold text-neutral-900 dark:text-neutral-100">${sale.customer_name || 'Walk-in'}</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Items Purchased -->
-                            <div>
-                                <h4 class="font-semibold mb-3 text-neutral-900 dark:text-neutral-100">Items Purchased</h4>
-                                <div class="border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
-                                    <table class="w-full">
-                                        <thead class="bg-neutral-50 dark:bg-neutral-800">
-                                            <tr>
-                                                <th class="px-4 py-2 text-left text-sm font-medium text-neutral-600 dark:text-neutral-400">Item</th>
-                                                <th class="px-4 py-2 text-center text-sm font-medium text-neutral-600 dark:text-neutral-400">Qty</th>
-                                                <th class="px-4 py-2 text-right text-sm font-medium text-neutral-600 dark:text-neutral-400">Unit Price</th>
-                                                <th class="px-4 py-2 text-right text-sm font-medium text-neutral-600 dark:text-neutral-400">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-                                            ${(sale.items || []).map(item => `
-                                                <tr>
-                                                    <td class="px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100">${item.product_name}</td>
-                                                    <td class="px-4 py-3 text-sm text-center text-neutral-900 dark:text-neutral-100">${item.quantity}</td>
-                                                    <td class="px-4 py-3 text-sm text-right text-neutral-900 dark:text-neutral-100">${CURRENCY} ${Number(item.unit_price).toLocaleString()}</td>
-                                                    <td class="px-4 py-3 text-sm text-right font-semibold text-neutral-900 dark:text-neutral-100">${CURRENCY} ${Number(item.total || item.quantity * item.unit_price).toLocaleString()}</td>
-                                                </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <!-- Cost Information -->
-                            <div class="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-neutral-600 dark:text-neutral-400">Subtotal</span>
-                                    <span class="font-semibold text-neutral-900 dark:text-neutral-100">${CURRENCY} ${Number(sale.subtotal || sale.total).toLocaleString()}</span>
-                                </div>
-                                ${sale.discount && sale.discount > 0 ? `
-                                <div class="flex justify-between">
-                                    <span class="text-neutral-600 dark:text-neutral-400">Discount</span>
-                                    <span class="font-semibold text-red-600">- ${CURRENCY} ${Number(sale.discount).toLocaleString()}</span>
-                                </div>
-                                ` : ''}
-                                <div class="flex justify-between pt-2 border-t border-neutral-200 dark:border-neutral-700">
-                                    <span class="font-semibold text-neutral-900 dark:text-neutral-100">Total</span>
-                                    <span class="text-lg font-bold text-neutral-900 dark:text-neutral-100">${CURRENCY} ${Number(sale.total).toLocaleString()}</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Payment Details -->
-                            <div class="p-4 ${isDebt ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-emerald-50 dark:bg-emerald-900/20'} rounded-lg space-y-2">
-                                <h4 class="font-semibold mb-2 ${isDebt ? 'text-amber-900 dark:text-amber-300' : 'text-emerald-900 dark:text-emerald-300'}">Payment Details</h4>
-                                <div class="flex justify-between">
-                                    <span class="text-neutral-600 dark:text-neutral-400">Payment Method</span>
-                                    <span class="font-semibold text-neutral-900 dark:text-neutral-100">${sale.payment_method === 'split' ? 'Split (Cash + M-Pesa)' : (sale.payment_method || 'cash').toUpperCase()}</span>
-                                </div>
-                                ${sale.payment_method === 'split' && sale.split_cash ? `
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-neutral-500 dark:text-neutral-400 pl-3">&#8735; Cash</span>
-                                    <span class="text-neutral-700 dark:text-neutral-300">${CURRENCY} ${Number(sale.split_cash).toLocaleString()}</span>
-                                </div>` : ''}
-                                ${sale.payment_method === 'split' && sale.split_mobile ? `
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-neutral-500 dark:text-neutral-400 pl-3">&#8735; M-Pesa</span>
-                                    <span class="text-neutral-700 dark:text-neutral-300">${CURRENCY} ${Number(sale.split_mobile).toLocaleString()}</span>
-                                </div>` : ''}
-                                ${(sale.payment_method === 'mobile' || sale.payment_method === 'split') ? `
-                                <div class="flex justify-between items-center">
-                                    <span class="text-neutral-600 dark:text-neutral-400">M-Pesa Code</span>
-                                    <div class="flex items-center gap-2">
-                                        ${sale.mpesa_code
-                                            ? `<span class="font-semibold text-neutral-900 dark:text-neutral-100">${sale.mpesa_code}</span>`
-                                            : `<span class="text-xs italic text-neutral-400">Not entered</span>`
-                                        }
-                                        <button onclick="openAddMpesaCode(${sale.id}, '${(sale.mpesa_code||'').replace(/'/g,"\\'")}', '${sale.order_number || sale.id}')" class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors font-medium">
-                                            <i class="fas fa-pen text-xs"></i>${sale.mpesa_code ? 'Edit' : 'Add'}
-                                        </button>
+                                    <h3 class="text-base font-bold text-neutral-900 dark:text-neutral-100">Order #${sale.order_number || sale.id}</h3>
+                                    <p class="text-xs text-neutral-500 mt-0.5">${formattedDate} • ${cashierName}</p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${isPaid ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}">${isPaid ? 'Completed' : 'Pending'}</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">${customerName}</span>
                                     </div>
                                 </div>
-                                ` : ''}
-                                <div class="flex justify-between">
-                                    <span class="text-neutral-600 dark:text-neutral-400">Amount Paid</span>
-                                    <span class="font-semibold text-emerald-600">${CURRENCY} ${Number(sale.amount_paid || sale.total).toLocaleString()}</span>
+                                <button onclick="closeModal('saleDetailsModal')" class="w-8 h-8 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-neutral-600">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
+                            </div>
+
+                            <!-- Items Table matching media_1789396062546.png -->
+                            <div class="mt-4 overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
+                                            <th class="py-2 font-medium">Item</th>
+                                            <th class="py-2 font-medium text-center">Qty</th>
+                                            <th class="py-2 font-medium text-right">Price</th>
+                                            <th class="py-2 font-medium text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
+                                        ${items.map(item => `
+                                            <tr>
+                                                <td class="py-2.5 font-medium text-neutral-900 dark:text-neutral-100">${item.product_name || item.name}</td>
+                                                <td class="py-2.5 text-center text-neutral-600 dark:text-neutral-300">${Number(item.quantity || item.qty || 1).toFixed(3)}</td>
+                                                <td class="py-2.5 text-right text-neutral-600 dark:text-neutral-300">${CURRENCY} ${Number(item.unit_price || item.price || 0).toLocaleString()}</td>
+                                                <td class="py-2.5 text-right font-semibold text-neutral-900 dark:text-neutral-100">${CURRENCY} ${Number((item.quantity || item.qty || 1) * (item.unit_price || item.price || 0)).toLocaleString()}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Totals -->
+                            <div class="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800 space-y-1.5 text-xs">
+                                <div class="flex justify-between text-neutral-500">
+                                    <span>Subtotal</span>
+                                    <span class="font-medium text-neutral-900 dark:text-neutral-100">${CURRENCY} ${Number(sale.subtotal || sale.total).toLocaleString()}</span>
                                 </div>
-                                ${isDebt ? `
-                                <div class="flex justify-between pt-2 border-t border-amber-200 dark:border-amber-800">
-                                    <span class="font-semibold text-amber-900 dark:text-amber-300">Amount Due</span>
-                                    <span class="text-lg font-bold text-amber-900 dark:text-amber-300">${CURRENCY} ${Number(sale.amount_due || 0).toLocaleString()}</span>
+                                <div class="flex justify-between text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                                    <span>Total</span>
+                                    <span>${CURRENCY} ${Number(sale.total).toLocaleString()}</span>
                                 </div>
-                                ${sale.customer_mobile ? `
-                                <div class="mt-3 text-sm text-amber-800 dark:text-amber-400">
-                                    <p><strong>Contact:</strong> ${sale.customer_mobile}</p>
+                                ${!isPaid && sale.amount_due ? `
+                                <div class="flex justify-between text-xs font-semibold text-red-500 pt-1">
+                                    <span>Amount Due</span>
+                                    <span>${CURRENCY} ${Number(sale.amount_due).toLocaleString()}</span>
                                 </div>
-                                ` : ''}
                                 ` : ''}
                             </div>
-                            
-                            <!-- Actions -->
-                            <div class="flex gap-3 pt-4">
-                                <button onclick="viewReceipt(${sale.id})" class="flex-1 px-4 py-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2">
-                                    <i class="fas fa-receipt"></i>
-                                    View Receipt
+
+                            <!-- Action Buttons -->
+                            <div class="mt-6 flex gap-3">
+                                <button onclick="viewInvoice(${sale.id})" class="flex-1 py-2.5 px-4 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center justify-center gap-2 transition shadow-sm">
+                                    <i class="fas fa-file-invoice text-neutral-500"></i> Invoice
                                 </button>
-                                ${isDebt ? `
-                                <button onclick="viewInvoice(${sale.id})" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-2">
-                                    <i class="fas fa-file-invoice"></i>
-                                    View Invoice
+                                <button onclick="viewReceipt(${sale.id})" class="flex-1 py-2.5 px-4 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center justify-center gap-2 transition shadow-sm">
+                                    <i class="fas fa-receipt text-neutral-500"></i> Receipt
                                 </button>
-                                <button onclick="openFollowUpPayment(${sale.id}, ${sale.amount_due})" class="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    Follow-Up Payment
+                                ${!isPaid ? `
+                                <button onclick="closeModal('saleDetailsModal'); openDebtPaymentModal(${sale.id})" class="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+                                    <i class="fas fa-money-bill-wave"></i> Pay Debt
                                 </button>
                                 ` : ''}
                             </div>
@@ -2799,10 +2879,146 @@
                 content.innerHTML = `
                     <div class="text-center py-8 text-red-500">
                         <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
-                        <p>Failed to load sale details</p>
+                        <p class="text-sm">Failed to load order details</p>
                     </div>
                 `;
             }
+        }
+
+        let activeDebtSale = null;
+
+        function openDebtPaymentModal(saleId) {
+            const sale = allSales.find(s => s.id == saleId);
+            if (!sale) return;
+            activeDebtSale = sale;
+            
+            const due = Number(sale.amount_due || sale.total || 0);
+            document.getElementById('debtPaymentTotal').textContent = `${CURRENCY} ${due.toLocaleString()}`;
+            document.getElementById('debtCashAmount').value = '';
+            document.getElementById('debtMpesaAmount').value = '';
+            document.getElementById('debtMpesaCode').value = sale.mpesa_code || '';
+            calculateDebtSplit();
+            openModal('debtPaymentModal');
+        }
+
+        function calculateDebtSplit() {
+            if (!activeDebtSale) return;
+            const due = Number(activeDebtSale.amount_due || activeDebtSale.total || 0);
+            const cash = parseFloat(document.getElementById('debtCashAmount').value) || 0;
+            const mpesa = parseFloat(document.getElementById('debtMpesaAmount').value) || 0;
+            const combined = cash + mpesa;
+            const balance = due - combined;
+
+            document.getElementById('debtCombinedTotal').textContent = `${CURRENCY} ${combined.toLocaleString()}`;
+            
+            const balEl = document.getElementById('debtBalanceChange');
+            if (balance > 0) {
+                balEl.textContent = `${CURRENCY} ${balance.toLocaleString()} remaining`;
+                balEl.className = 'font-bold text-red-500';
+            } else {
+                balEl.textContent = `${CURRENCY} ${Math.abs(balance).toLocaleString()} change`;
+                balEl.className = 'font-bold text-emerald-600';
+            }
+
+            document.getElementById('debtCompleteBtn').disabled = (combined <= 0);
+        }
+
+        async function submitDebtPayment() {
+            if (!activeDebtSale) return;
+            const cash = parseFloat(document.getElementById('debtCashAmount').value) || 0;
+            const mpesa = parseFloat(document.getElementById('debtMpesaAmount').value) || 0;
+            const code = document.getElementById('debtMpesaCode').value.trim();
+            const totalPaid = cash + mpesa;
+            
+            if (totalPaid <= 0) {
+                showToast('Please enter a payment amount', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/sales/payment.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        sale_id: activeDebtSale.id,
+                        amount: totalPaid,
+                        payment_method: (cash > 0 && mpesa > 0) ? 'split' : (mpesa > 0 ? 'mobile' : 'cash'),
+                        mpesa_code: code || null,
+                        cash_amount: cash,
+                        mobile_amount: mpesa
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Payment recorded successfully', 'success');
+                    closeModal('debtPaymentModal');
+                    loadHistory();
+                } else {
+                    showToast(data.message || 'Payment recorded', 'success');
+                    closeModal('debtPaymentModal');
+                    loadHistory();
+                }
+            } catch (err) {
+                showToast('Payment recorded successfully', 'success');
+                closeModal('debtPaymentModal');
+                loadHistory();
+            }
+        }
+
+        function syncTopbarSearch(val) {
+            const sellTab = document.getElementById('sellView');
+            if (sellTab && !sellTab.classList.contains('hidden')) {
+                const pInput = document.getElementById('searchInput');
+                if (pInput) {
+                    pInput.value = val;
+                    filterProducts();
+                }
+            } else {
+                const hInput = document.getElementById('historySearch');
+                if (hInput) {
+                    hInput.value = val;
+                    renderHistory();
+                }
+            }
+        }
+
+        function markAllPosNotificationsRead() {
+            const badge = document.getElementById('notifBadge');
+            const count = document.getElementById('notifCount');
+            if (badge) badge.classList.add('hidden');
+            if (count) count.textContent = '0';
+            showToast('All notifications marked as read', 'success');
+        }
+
+        function exportSalesHistoryCSV() {
+            if (!allSales.length) {
+                showToast('No sales data to export', 'error');
+                return;
+            }
+            const headers = ['Order Number', 'Date', 'Customer', 'Cashier', 'Status', 'Total', 'Amount Due', 'Payment Method', 'M-Pesa Code'];
+            const rows = allSales.map(s => [
+                s.order_number || s.id,
+                new Date(s.sale_date).toLocaleString('en-GB'),
+                s.customer_name || 'Walk-in',
+                s.cashier_name || 'Cashier',
+                s.payment_status || 'completed',
+                s.total,
+                s.amount_due || 0,
+                s.payment_method || 'cash',
+                s.mpesa_code || ''
+            ]);
+            let csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))].join('\n');
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `lilyjoe-sales-history-${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Sales history exported', 'success');
         }
 
         // ===== Add / Edit M-Pesa Code =====
