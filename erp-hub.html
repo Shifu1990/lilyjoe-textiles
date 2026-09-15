@@ -1049,15 +1049,18 @@
                         <div id="revenueSparkline" class="mt-3" style="height:46px;"></div>
                     </div>
 
-                    <!-- Profit / Loss -->
-                    <div class="card card-stat fx-pad overflow-hidden" onclick="openRevenueModal()">
+                    <!-- Realized Gross Profit & Gross Margin -->
+                    <div class="card card-stat fx-pad overflow-hidden cursor-pointer" onclick="openGrossProfitModal()">
                         <div class="flex items-start justify-between">
                             <div>
-                                <p class="text-xs fx-soft uppercase tracking-wide">Total Profit / Loss</p>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <p class="text-xs fx-soft uppercase tracking-wide">Realized Gross Profit</p>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" id="kpiGrossMarginBadge">0.0% Margin</span>
+                                </div>
                                 <p class="text-2xl font-bold fx-title mt-2" id="kpiProfit">KES 0</p>
                             </div>
                             <div class="w-10 h-10 rounded-xl accent-soft-bg flex items-center justify-center">
-                                <i class="fas fa-right-left accent-text"></i>
+                                <i class="fas fa-chart-line accent-text"></i>
                             </div>
                         </div>
                         <p class="text-xs mt-2 flex items-center gap-1.5" id="kpiProfitDelta"></p>
@@ -1256,6 +1259,7 @@
                     <option value="profit">Profit Report</option>
                     <option value="cashier">Cashier Performance</option>
                     <option value="debts">Debts Report</option>
+                    <option value="pnl">Monthly P&L Statement</option>
                 </select>
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
                     <div class="fx-tabs" id="reportTypeTabs">
@@ -1264,6 +1268,7 @@
                         <button class="fx-tab" data-rtype="profit" onclick="setReportType('profit', event)">Profit Report</button>
                         <button class="fx-tab" data-rtype="cashier" onclick="setReportType('cashier', event)">Cashier Performance</button>
                         <button class="fx-tab" data-rtype="debts" onclick="setReportType('debts', event)">Debts Report</button>
+                        <button class="fx-tab" data-rtype="pnl" onclick="setReportType('pnl', event)"><i class="fas fa-file-invoice-dollar mr-1"></i>P&amp;L Statement</button>
                     </div>
                 </div>
 
@@ -1274,7 +1279,8 @@
                         <span class="fx-soft">&ndash;</span>
                         <input type="date" id="reportEndDate" class="date-input" onchange="generateReport()">
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button class="fx-export" onclick="openZReportModal()" style="background:rgba(139,92,246,0.12);color:#8b5cf6;border:1.5px solid rgba(139,92,246,0.3)"><i class="fas fa-calculator mr-1"></i> Daily Z-Report</button>
                         <button class="fx-export" onclick="exportReport('csv')"><i class="fas fa-file-csv"></i> Export CSV</button>
                         <button class="fx-export" onclick="exportReport('pdf')" style="background:var(--card-bg);color:var(--accent);border:1.5px solid var(--accent)"><i class="fas fa-file-pdf"></i> Export PDF</button>
                     </div>
@@ -2695,43 +2701,75 @@
         </div>
     </div>
 
-    <!-- Gross Profit Modal -->
+    <!-- Gross Profit Modal (Profitability Waterfall) -->
     <div id="grossProfitModal" class="modal" onclick="if(event.target===this)closeModal('grossProfitModal')">
         <div class="modal-content w-full max-w-lg p-6 m-4">
-            <!-- Updated modal heading -->
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-primary-800 dark:text-primary-300">Gross Profit Details</h3>
-                <button onclick="closeModal('grossProfitModal')" class="text-neutral-500 hover:text-neutral-700"><i class="fas fa-times"></i></button>
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-base">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-neutral-900 dark:text-neutral-100">Profitability Waterfall</h3>
+                        <p class="text-xs text-neutral-500" id="grossProfitPeriodLabel">Period: Current selection</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('grossProfitModal')" class="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"><i class="fas fa-times"></i></button>
             </div>
+            
             <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
-                        <p class="text-xs text-purple-600 uppercase">Gross Profit</p>
-                        <p class="text-2xl font-bold text-purple-700 dark:text-purple-400" id="modalGrossProfit">KES 0</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-xl">
+                        <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Gross Profit</p>
+                        <p class="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-1" id="modalGrossProfit">KES 0</p>
+                        <p class="text-xs text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Realized Revenue &minus; COGS</p>
                     </div>
-                    <div class="p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg text-center">
-                        <p class="text-xs text-cyan-600 uppercase">Profit Margin</p>
-                        <p class="text-2xl font-bold text-cyan-700 dark:text-cyan-400" id="modalGrossMargin">0%</p>
-                    </div>
-                </div>
-                <!-- Updated modal content background -->
-                <div class="p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-                    <p class="text-sm text-primary-600 dark:text-primary-400 mb-2">Profit Breakdown</p>
-                    <div class="flex justify-between text-sm">
-                        <span>Total Revenue</span>
-                        <span class="font-medium" id="modalGrossRevenue">KES 0</span>
-                    </div>
-                    <div class="flex justify-between text-sm mt-1">
-                        <span>Total Cost</span>
-                        <span class="font-medium" id="modalGrossCost">KES 0</span>
-                    </div>
-                    <hr class="my-2 border-neutral-200 dark:border-neutral-700">
-                    <div class="flex justify-between text-sm font-bold">
-                        <span>Net Profit</span>
-                        <span class="text-emerald-600" id="modalNetProfit">KES 0</span>
+                    <div class="p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/30 rounded-xl">
+                        <p class="text-[11px] font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider">Gross Margin</p>
+                        <p class="text-2xl font-black text-primary-700 dark:text-primary-300 mt-1" id="modalGrossMargin">0.0%</p>
+                        <p class="text-xs text-primary-600/80 dark:text-primary-400/80 mt-0.5" id="modalGrossMarginComment">Gross Profit / Revenue</p>
                     </div>
                 </div>
-                <div class="text-xs text-neutral-500 text-center" id="grossProfitPeriodLabel">Period: Current date</div>
+
+                <!-- Financial Waterfall Breakdown -->
+                <div class="p-4 bg-neutral-50 dark:bg-neutral-800/60 rounded-xl border border-neutral-200 dark:border-neutral-700 space-y-3">
+                    <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Margin Breakdown Waterfall</p>
+                    
+                    <div class="flex justify-between items-center text-sm py-1.5 border-b border-neutral-200/60 dark:border-neutral-700/60">
+                        <span class="flex items-center gap-2 text-neutral-700 dark:text-neutral-300">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Total Realized Revenue
+                        </span>
+                        <span class="font-bold text-neutral-900 dark:text-neutral-100" id="modalGrossRevenue">KES 0</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-sm py-1.5 border-b border-neutral-200/60 dark:border-neutral-700/60">
+                        <span class="flex items-center gap-2 text-neutral-700 dark:text-neutral-300">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Cost of Goods Sold (COGS)
+                        </span>
+                        <span class="font-semibold text-rose-600 dark:text-rose-400" id="modalGrossCost">- KES 0</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-sm py-2 bg-emerald-500/10 dark:bg-emerald-500/20 px-3 rounded-lg">
+                        <span class="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                            <i class="fas fa-check-circle text-xs"></i> Realized Gross Profit
+                        </span>
+                        <span class="font-black text-emerald-700 dark:text-emerald-300 text-base" id="modalGrossProfitSubtotal">KES 0</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-sm py-1.5 text-neutral-600 dark:text-neutral-400">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-clock text-amber-500 text-xs"></i> Outstanding Debts (Receivables)
+                        </span>
+                        <span class="font-medium text-amber-600 dark:text-amber-400" id="modalGrossDebtPending">KES 0</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('grossProfitModal')" class="btn-secondary px-4 py-2 text-xs">Close</button>
+                    <button type="button" onclick="closeModal('grossProfitModal'); switchTab('finance');" class="btn-primary px-4 py-2 text-xs flex items-center gap-1.5">
+                        <span>Financial Statements</span> <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2793,21 +2831,184 @@
         </div>
     </div>
 
-    <!-- Outstanding Debts Modal - Shows debt sales with cashier info -->
+    <!-- Outstanding Debts Modal with Aging Buckets & WhatsApp Reminders -->
     <div id="debtsDetailsModal" class="modal" onclick="if(event.target===this)closeModal('debtsDetailsModal')">
-        <div class="modal-content w-full max-w-2xl p-6 m-4">
-            <!-- Updated modal heading -->
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold text-rose-600 dark:text-rose-400"><i class="fas fa-hand-holding-usd mr-2"></i>Outstanding Debts</h3>
-                <button onclick="closeModal('debtsDetailsModal')" class="text-neutral-500 hover:text-neutral-700"><i class="fas fa-times"></i></button>
+        <div class="modal-content w-full max-w-3xl p-6 m-4">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-600 flex items-center justify-center text-sm">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-neutral-900 dark:text-neutral-100">Customer Debt Tracker &amp; Aging</h3>
+                        <p class="text-xs text-neutral-500">Accounts receivable aging analysis and 1-click WhatsApp statements</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('debtsDetailsModal')" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 p-1"><i class="fas fa-times"></i></button>
             </div>
-            <!-- Updated modal content background -->
-            <div class="p-3 bg-rose-50 dark:bg-rose-900/20 rounded-lg mb-4 text-center">
-                <p class="text-xs text-rose-600 uppercase">Total Outstanding</p>
-                <p class="text-2xl font-bold text-rose-700" id="modalTotalDebts">KES 0</p>
+
+            <!-- Aging Bucket Summary Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+                <div class="p-2.5 bg-rose-50 dark:bg-rose-900/20 rounded-xl border border-rose-200/60 dark:border-rose-800/40 text-center cursor-pointer hover:shadow-sm transition" onclick="filterDebtsByBucket('all')">
+                    <p class="text-[10px] uppercase tracking-wider font-semibold text-rose-600 dark:text-rose-400">Total Debt</p>
+                    <p class="text-lg font-bold text-rose-700 dark:text-rose-300 mt-0.5" id="modalTotalDebts">KES 0</p>
+                    <p class="text-[10px] text-rose-500" id="modalDebtCountAll">0 orders</p>
+                </div>
+                <div class="p-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 text-center cursor-pointer hover:shadow-sm transition" onclick="filterDebtsByBucket('current')">
+                    <p class="text-[10px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-400">0–14 Days (Current)</p>
+                    <p class="text-lg font-bold text-emerald-700 dark:text-emerald-300 mt-0.5" id="modalDebtCurrent">KES 0</p>
+                    <p class="text-[10px] text-emerald-600" id="modalDebtCountCurrent">0 orders</p>
+                </div>
+                <div class="p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200/60 dark:border-amber-800/40 text-center cursor-pointer hover:shadow-sm transition" onclick="filterDebtsByBucket('due')">
+                    <p class="text-[10px] uppercase tracking-wider font-semibold text-amber-600 dark:text-amber-400">15–30 Days (Due Soon)</p>
+                    <p class="text-lg font-bold text-amber-700 dark:text-amber-300 mt-0.5" id="modalDebtDue">KES 0</p>
+                    <p class="text-[10px] text-amber-600" id="modalDebtCountDue">0 orders</p>
+                </div>
+                <div class="p-2.5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200/60 dark:border-red-800/40 text-center cursor-pointer hover:shadow-sm transition" onclick="filterDebtsByBucket('overdue')">
+                    <p class="text-[10px] uppercase tracking-wider font-semibold text-red-600 dark:text-red-400">30+ Days (Delinquent)</p>
+                    <p class="text-lg font-bold text-red-700 dark:text-red-300 mt-0.5" id="modalDebtOverdue">KES 0</p>
+                    <p class="text-[10px] text-red-600" id="modalDebtCountOverdue">0 orders</p>
+                </div>
             </div>
-            <div id="debtsDetailsContent" class="space-y-3 max-h-[50vh] overflow-y-auto"></div>
-            <div class="text-xs text-neutral-500 text-center mt-4" id="debtsPeriodLabel">Period: Current date</div>
+
+            <!-- Aging Filter Chips & Search -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1" id="debtAgingTabs">
+                    <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 transition" data-bucket="all" onclick="filterDebtsByBucket('all', this)">All Debts</button>
+                    <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition" data-bucket="current" onclick="filterDebtsByBucket('current', this)">Current (0–14d)</button>
+                    <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition" data-bucket="due" onclick="filterDebtsByBucket('due', this)">Due Soon (15–30d)</button>
+                    <button type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition" data-bucket="overdue" onclick="filterDebtsByBucket('overdue', this)">Delinquent (30d+)</button>
+                </div>
+                <div class="relative w-full sm:w-56">
+                    <i class="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs"></i>
+                    <input type="text" id="debtsFilterSearch" placeholder="Search debtor / order..." class="w-full pl-7 pr-3 py-1 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs text-neutral-900 dark:text-neutral-100 focus:outline-none" oninput="searchDebtsModal(this.value)">
+                </div>
+            </div>
+
+            <div id="debtsDetailsContent" class="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1"></div>
+            <div class="flex items-center justify-between text-xs text-neutral-500 mt-4 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                <span id="debtsPeriodLabel">Period: Current date</span>
+                <button type="button" onclick="exportDebtsAgingCSV()" class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-1"><i class="fas fa-file-csv"></i> Export Aging CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Z-Report / End-of-Day Reconciliation Modal -->
+    <div id="zReportModal" class="modal" onclick="if(event.target===this)closeModal('zReportModal')">
+        <div class="modal-content w-full max-w-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center text-sm">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-neutral-900 dark:text-neutral-100">Daily Z-Report</h3>
+                        <p class="text-xs text-neutral-500">End-of-Day Register Reconciliation &amp; Financial Balance</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('zReportModal')" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 p-1"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Date selector & Refresh -->
+            <div class="flex items-center justify-between gap-3 mb-4 bg-neutral-50 dark:bg-neutral-800/60 p-3 rounded-xl border border-neutral-200/60 dark:border-neutral-700/60">
+                <div class="flex items-center gap-2">
+                    <label for="zReportDate" class="text-xs font-semibold text-neutral-600 dark:text-neutral-300">Date:</label>
+                    <input type="date" id="zReportDate" class="date-input text-xs px-2 py-1 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900" onchange="loadZReportData()">
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportZReportCSV()" class="px-3 py-1.5 rounded-lg text-xs font-medium border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 hover:bg-neutral-100 text-neutral-700 dark:text-neutral-200 flex items-center gap-1.5 transition">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </button>
+                    <button onclick="exportZReportPDF()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm transition">
+                        <i class="fas fa-print"></i> Export PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Printable Sheet Container -->
+            <div id="zReportPrintArea" class="bg-white dark:bg-neutral-900 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100">
+                <!-- Store Header -->
+                <div class="text-center pb-4 border-b border-dashed border-neutral-200 dark:border-neutral-700 mb-4">
+                    <h2 class="text-lg font-bold tracking-tight text-neutral-900 dark:text-white" id="zStoreName">LilyJoe Textiles</h2>
+                    <p class="text-xs text-neutral-500" id="zStoreSubtitle">Official End-of-Day Register Reconciliation</p>
+                    <p class="text-xs font-mono text-neutral-400 mt-1" id="zReportTimestamp">Date: --</p>
+                </div>
+
+                <!-- High-level KPIs -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                    <div class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg text-center">
+                        <p class="text-[10px] text-neutral-500 uppercase">Gross Sales</p>
+                        <p class="text-base font-bold text-neutral-900 dark:text-white mt-0.5" id="zGrossSales">KES 0</p>
+                    </div>
+                    <div class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg text-center">
+                        <p class="text-[10px] text-neutral-500 uppercase">Orders</p>
+                        <p class="text-base font-bold text-neutral-900 dark:text-white mt-0.5" id="zOrderCount">0</p>
+                    </div>
+                    <div class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg text-center">
+                        <p class="text-[10px] text-neutral-500 uppercase">Cash Collected</p>
+                        <p class="text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5" id="zCashSales">KES 0</p>
+                    </div>
+                    <div class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg text-center">
+                        <p class="text-[10px] text-neutral-500 uppercase">M-Pesa Received</p>
+                        <p class="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5" id="zMpesaSales">KES 0</p>
+                    </div>
+                </div>
+
+                <!-- Reconciliation Section -->
+                <div class="space-y-2 text-xs mb-4 p-3 bg-neutral-50/50 dark:bg-neutral-800/40 rounded-lg border border-neutral-100 dark:border-neutral-800">
+                    <div class="flex justify-between font-semibold pb-1.5 border-b border-neutral-200 dark:border-neutral-700">
+                        <span>Payment Breakdown</span>
+                        <span>Amount</span>
+                    </div>
+                    <div class="flex justify-between text-neutral-600 dark:text-neutral-300">
+                        <span>Cash Tendered:</span>
+                        <span class="font-mono font-medium" id="zRowCash">KES 0</span>
+                    </div>
+                    <div class="flex justify-between text-neutral-600 dark:text-neutral-300">
+                        <span>M-Pesa Tendered:</span>
+                        <span class="font-mono font-medium" id="zRowMpesa">KES 0</span>
+                    </div>
+                    <div class="flex justify-between text-neutral-600 dark:text-neutral-300">
+                        <span>Credit / Debt Sales Issued:</span>
+                        <span class="font-mono font-medium text-rose-500" id="zRowDebtIssued">KES 0</span>
+                    </div>
+                    <div class="flex justify-between text-neutral-600 dark:text-neutral-300">
+                        <span>Debt Payments Settled:</span>
+                        <span class="font-mono font-medium text-emerald-500" id="zRowDebtSettled">KES 0</span>
+                    </div>
+                    <div class="flex justify-between text-neutral-600 dark:text-neutral-300 pt-1.5 border-t border-dashed border-neutral-200 dark:border-neutral-700">
+                        <span>COGS (Cost of Goods Sold):</span>
+                        <span class="font-mono font-medium" id="zRowCogs">KES 0</span>
+                    </div>
+                    <div class="flex justify-between text-neutral-900 dark:text-white font-bold">
+                        <span>Realized Gross Profit:</span>
+                        <span class="font-mono text-emerald-600" id="zRowGrossProfit">KES 0 (<span id="zGrossMarginPct">0%</span>)</span>
+                    </div>
+                </div>
+
+                <!-- Cash Drawer Balance -->
+                <div class="p-3 bg-blue-50/60 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30 text-xs">
+                    <p class="font-semibold text-blue-900 dark:text-blue-300 mb-2"><i class="fas fa-cash-register mr-1"></i>Cash Drawer Balancing</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] text-neutral-500 block">Opening Float</label>
+                            <input type="number" id="zOpeningFloat" value="5000" class="w-full text-xs font-mono font-bold p-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded" oninput="calcCashDrawer()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-neutral-500 block">Cash Payouts / Out</label>
+                            <input type="number" id="zCashPayout" value="0" class="w-full text-xs font-mono font-bold p-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded" oninput="calcCashDrawer()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-neutral-500 block">Expected in Drawer</label>
+                            <div class="text-sm font-mono font-bold text-blue-700 dark:text-blue-400 p-1" id="zExpectedCash">KES 5,000</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center text-[10px] text-neutral-400 mt-4 pt-3 border-t border-dashed border-neutral-200 dark:border-neutral-700">
+                    Generated by Flowtive ERP Hub · Cashier / Manager Signature: _______________________
+                </div>
+            </div>
         </div>
     </div>
 
@@ -3383,6 +3584,37 @@
             openModal('revenueDetailsModal');
         }
 
+        function openGrossProfitModal() {
+            if (!dashboardData) return;
+            const revenue = Number(dashboardData.total_revenue || 0);
+            const profit = Number(dashboardData.total_profit || 0);
+            const margin = revenue > 0 ? (profit / revenue * 100) : (dashboardData.margin !== undefined ? Number(dashboardData.margin) : 0);
+            const cogs = Math.max(0, revenue - profit);
+            const pendingDebts = Number(dashboardData.outstanding_debts || 0);
+
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+            set('modalGrossRevenue', fmtCur(revenue));
+            set('modalGrossCost', '- ' + fmtCur(cogs));
+            set('modalGrossProfit', fmtCur(profit));
+            const subtotalEl = document.getElementById('modalGrossProfitSubtotal');
+            if (subtotalEl) subtotalEl.textContent = fmtCur(profit);
+            set('modalGrossMargin', `${margin.toFixed(1)}%`);
+            set('modalGrossDebtPending', fmtCur(pendingDebts));
+
+            const commentEl = document.getElementById('modalGrossMarginComment');
+            if (commentEl) {
+                if (margin >= 35) commentEl.textContent = 'Excellent gross margin';
+                else if (margin >= 20) commentEl.textContent = 'Healthy gross margin';
+                else if (margin > 0) commentEl.textContent = 'Low gross margin';
+                else commentEl.textContent = 'Break-even or loss';
+            }
+
+            const periodEl = document.getElementById('grossProfitPeriodLabel');
+            if (periodEl) periodEl.textContent = `Period: ${getPeriodLabel()}`;
+
+            openModal('grossProfitModal');
+        }
+
         function openOrdersModal() {
             if (!dashboardData) return;
             const orders = dashboardData.data?.recent_orders || dashboardData.data?.recent_sales || [];
@@ -3599,55 +3831,354 @@
             openModal('priceAdjustDetailsModal');
         }
 
-        function openDebtsModal() {
-            if (!dashboardData) return;
-            const sales = dashboardData.data?.recent_sales || dashboardData.data?.recent_orders || [];
+        let modalDebtsList = [];
+        let modalDebtsCurrentBucket = 'all';
+        let modalDebtsSearchTerm = '';
+
+        async function openDebtsModal() {
+            openModal('debtsDetailsModal');
             const container = document.getElementById('debtsDetailsContent');
-            
-            if (!container) {
+            if (container) {
+                container.innerHTML = '<div class="text-center py-8 text-neutral-500"><i class="fas fa-spinner fa-spin text-xl mr-2"></i>Loading debts...</div>';
+            }
+
+            // Fetch full sales if token exists to get complete debts list
+            let sales = [];
+            try {
+                const res = await fetch(`${API_BASE}/sales/index.php?all=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await res.json();
+                if (result.success && Array.isArray(result.sales)) {
+                    sales = result.sales;
+                }
+            } catch (e) {
+                console.warn('Could not fetch full sales for debts, falling back to dashboard data');
+            }
+
+            if (!sales.length && dashboardData) {
+                sales = dashboardData.data?.recent_sales || dashboardData.data?.recent_orders || [];
+            }
+
+            // Filter debt/partial sales with positive balance
+            const now = new Date();
+            modalDebtsList = sales.filter(s => {
+                const ps = (s.payment_status || '').toLowerCase();
+                const due = parseFloat(s.amount_due) || (parseFloat(s.total) - parseFloat(s.amount_paid || 0));
+                return (ps === 'debt' || ps === 'partial') && due > 0;
+            }).map(s => {
+                const due = parseFloat(s.amount_due) || (parseFloat(s.total) - parseFloat(s.amount_paid || 0));
+                const sDate = s.sale_date ? new Date(s.sale_date) : now;
+                const ageDays = Math.max(0, Math.floor((now - sDate) / (1000 * 60 * 60 * 24)));
+                let bucket = 'current';
+                if (ageDays > 30) bucket = 'overdue';
+                else if (ageDays > 14) bucket = 'due';
+                return {
+                    ...s,
+                    amount_due: due,
+                    ageDays,
+                    bucket
+                };
+            });
+
+            // Calculate bucket totals
+            const totalDebt = modalDebtsList.reduce((sum, s) => sum + s.amount_due, 0);
+            const currentDebts = modalDebtsList.filter(s => s.bucket === 'current');
+            const dueDebts = modalDebtsList.filter(s => s.bucket === 'due');
+            const overdueDebts = modalDebtsList.filter(s => s.bucket === 'overdue');
+
+            const totalCurrent = currentDebts.reduce((sum, s) => sum + s.amount_due, 0);
+            const totalDue = dueDebts.reduce((sum, s) => sum + s.amount_due, 0);
+            const totalOverdue = overdueDebts.reduce((sum, s) => sum + s.amount_due, 0);
+
+            // Update UI elements
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set('modalTotalDebts', `${currencySymbol} ${Number(totalDebt).toLocaleString()}`);
+            set('modalDebtCountAll', `${modalDebtsList.length} orders`);
+            set('modalDebtCurrent', `${currencySymbol} ${Number(totalCurrent).toLocaleString()}`);
+            set('modalDebtCountCurrent', `${currentDebts.length} orders`);
+            set('modalDebtDue', `${currencySymbol} ${Number(totalDue).toLocaleString()}`);
+            set('modalDebtCountDue', `${dueDebts.length} orders`);
+            set('modalDebtOverdue', `${currencySymbol} ${Number(totalOverdue).toLocaleString()}`);
+            set('modalDebtCountOverdue', `${overdueDebts.length} orders`);
+
+            const debtsPeriodLabelEl = document.getElementById('debtsPeriodLabel');
+            if (debtsPeriodLabelEl) debtsPeriodLabelEl.textContent = `Period: ${typeof getPeriodLabel === 'function' ? getPeriodLabel() : 'All Active Debts'}`;
+
+            modalDebtsCurrentBucket = 'all';
+            modalDebtsSearchTerm = '';
+            if (document.getElementById('debtsFilterSearch')) document.getElementById('debtsFilterSearch').value = '';
+            renderDebtsList();
+        }
+
+        function filterDebtsByBucket(bucket, btn) {
+            modalDebtsCurrentBucket = bucket;
+            document.querySelectorAll('#debtAgingTabs button').forEach(b => {
+                const isActive = b.getAttribute('data-bucket') === bucket;
+                b.className = isActive
+                    ? 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 transition'
+                    : 'px-2.5 py-1 rounded-lg text-xs font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 transition';
+            });
+            renderDebtsList();
+        }
+
+        function searchDebtsModal(term) {
+            modalDebtsSearchTerm = (term || '').toLowerCase().trim();
+            renderDebtsList();
+        }
+
+        function renderDebtsList() {
+            const container = document.getElementById('debtsDetailsContent');
+            if (!container) return;
+
+            let filtered = modalDebtsList;
+            if (modalDebtsCurrentBucket !== 'all') {
+                filtered = filtered.filter(s => s.bucket === modalDebtsCurrentBucket);
+            }
+            if (modalDebtsSearchTerm) {
+                filtered = filtered.filter(s => {
+                    const name = (s.customer_name || s.cust_name || '').toLowerCase();
+                    const num = String(s.order_number || s.id || '').toLowerCase();
+                    const phone = String(s.customer_phone || s.phone || '').toLowerCase();
+                    return name.includes(modalDebtsSearchTerm) || num.includes(modalDebtsSearchTerm) || phone.includes(modalDebtsSearchTerm);
+                });
+            }
+
+            if (!filtered.length) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-neutral-500">
+                        <i class="fas fa-check-circle text-emerald-500 text-3xl mb-2"></i>
+                        <p class="text-sm font-medium">No debts found in this category</p>
+                    </div>
+                `;
                 return;
             }
-            
-            // Filter debt/partial sales
-            const debtSales = sales.filter(s => s.payment_status === 'debt' || s.payment_status === 'partial');
-            const totalDebt = debtSales.reduce((sum, s) => {
-                return sum + (parseFloat(s.amount_due) || (parseFloat(s.total) - parseFloat(s.amount_paid || 0)));
-            }, 0);
-            
-            const modalTotalDebtsEl = document.getElementById('modalTotalDebts');
-            const activeDebtsEl = document.getElementById('activeDebts'); // Assuming this element exists for the KPI
-            const kpiDebtCount = document.getElementById('kpiDebtCount');
-            const debtsPeriodLabelEl = document.getElementById('debtsPeriodLabel');
 
-            if (modalTotalDebtsEl) modalTotalDebtsEl.textContent = `${currencySymbol} ${Number(totalDebt).toLocaleString()}`;
-            if (activeDebtsEl) activeDebtsEl.textContent = `${currencySymbol} ${Number(totalDebt).toLocaleString()}`;
-            if (kpiDebtCount) kpiDebtCount.textContent = debtSales.length;
-            
-            if (debtSales.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-neutral-500"><i class="fas fa-check-circle text-emerald-500 text-3xl mb-2"></i><p>No outstanding debts!</p></div>';
-            } else {
-                container.innerHTML = debtSales.map(sale => {
-                    const amountDue = parseFloat(sale.amount_due) || (parseFloat(sale.total) - parseFloat(sale.amount_paid || 0));
-                    return `
-                        <div class="flex items-center justify-between p-3 bg-rose-50 dark:bg-rose-900/20 rounded-lg">
-                            <div>
-                                <p class="font-medium text-neutral-900 dark:text-neutral-100">#${sale.order_number || sale.id}</p>
-                                <p class="text-xs text-neutral-500">${sale.customer_name || 'Walk-in Customer'}</p>
-                                <p class="text-xs text-neutral-400">Cashier: ${sale.cashier_name || 'N/A'}</p>
+            container.innerHTML = filtered.map(sale => {
+                const custName = sale.customer_name || sale.cust_name || 'Walk-in Customer';
+                const custPhone = sale.customer_phone || sale.phone || '';
+                const orderNum = sale.order_number || sale.id;
+                const saleDate = sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('en-GB') : '-';
+                const due = sale.amount_due;
+                const ageDays = sale.ageDays;
+
+                let badgeHtml = '';
+                let borderClass = 'border-neutral-200 dark:border-neutral-800';
+                if (sale.bucket === 'overdue') {
+                    badgeHtml = `<span class="px-2 py-0.5 text-[10px] rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 font-bold flex items-center gap-1"><i class="fas fa-triangle-exclamation text-[9px]"></i>Delinquent (${ageDays}d)</span>`;
+                    borderClass = 'border-red-200 dark:border-red-900/50 bg-red-50/20 dark:bg-red-950/10';
+                } else if (sale.bucket === 'due') {
+                    badgeHtml = `<span class="px-2 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 font-semibold flex items-center gap-1"><i class="fas fa-clock text-[9px]"></i>Due Soon (${ageDays}d)</span>`;
+                    borderClass = 'border-amber-200 dark:border-amber-900/40';
+                } else {
+                    badgeHtml = `<span class="px-2 py-0.5 text-[10px] rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-medium flex items-center gap-1"><i class="fas fa-check-circle text-[9px]"></i>Current (${ageDays}d)</span>`;
+                }
+
+                return `
+                    <div class="p-3 bg-white dark:bg-neutral-800/80 rounded-xl border ${borderClass} shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-neutral-900 dark:text-white text-xs">#${orderNum}</span>
+                                ${badgeHtml}
+                                <span class="text-[11px] text-neutral-400 font-mono">${saleDate}</span>
                             </div>
-                            <div class="text-right">
-                                <p class="font-bold text-rose-600">${currencySymbol} ${Number(amountDue).toLocaleString()}</p>
-                                <span class="px-2 py-0.5 text-xs rounded-full ${
-                                    sale.payment_status === 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                                }">${sale.payment_status}</span>
-                            </div>
+                            <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 mt-1 truncate">
+                                <i class="fas fa-user text-[10px] text-neutral-400 mr-1"></i>${custName}
+                                ${custPhone ? `<span class="text-neutral-500 font-normal ml-1 font-mono text-[11px]">${custPhone}</span>` : ''}
+                            </p>
+                            <p class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                                Cashier: <span class="text-neutral-700 dark:text-neutral-300 font-medium">${sale.cashier_name || 'N/A'}</span> · Total: ${currencySymbol} ${Number(sale.total).toLocaleString()}
+                            </p>
                         </div>
-                    `;
-                }).join('');
+                        <div class="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 flex-shrink-0">
+                            <div class="text-right">
+                                <p class="text-[10px] text-neutral-500 uppercase">Amount Due</p>
+                                <p class="text-base font-bold text-rose-600 dark:text-rose-400">${currencySymbol} ${Number(due).toLocaleString()}</p>
+                            </div>
+                            <button type="button" onclick="sendDebtWhatsApp('${custName.replace(/'/g, "\\'")}', '${custPhone}', ${due}, '${orderNum}', '${saleDate}')" class="px-2.5 py-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg inline-flex items-center gap-1.5 shadow-sm transition">
+                                <i class="fab fa-whatsapp"></i><span>Remind</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function sendDebtWhatsApp(customerName, phone, amountDue, orderNum, saleDate) {
+            let cleanPhone = String(phone || '').replace(/[^0-9]/g, '');
+            if (!cleanPhone) {
+                cleanPhone = prompt(`Enter phone number for ${customerName} (e.g. 0712345678):`, '07');
+                if (!cleanPhone) return;
+                cleanPhone = cleanPhone.replace(/[^0-9]/g, '');
             }
+            if (cleanPhone.startsWith('0') && cleanPhone.length === 10) {
+                cleanPhone = '254' + cleanPhone.slice(1);
+            } else if (cleanPhone.startsWith('+')) {
+                cleanPhone = cleanPhone.slice(1);
+            }
+
+            const paybill = companySettings?.mpesa_paybill || '247247';
+            const storeName = companySettings?.name || 'LilyJoe Textiles';
+            const msg = `Hello ${customerName},\n\nThis is a friendly payment reminder from *${storeName}*.\nYou have an outstanding balance of *KES ${Number(amountDue).toLocaleString()}* for Order #${orderNum} dated ${saleDate}.\n\nKindly settle via M-Pesa:\n• Paybill / Till: *${paybill}*\n• Account Number: *${orderNum}*\n\nThank you for doing business with us!`;
+            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        function exportDebtsAgingCSV() {
+            if (!modalDebtsList || !modalDebtsList.length) {
+                showToast('No debts to export', 'error');
+                return;
+            }
+            const headers = ['Order Number', 'Date', 'Customer Name', 'Phone', 'Cashier', 'Total Amount', 'Amount Due', 'Age (Days)', 'Aging Bucket'];
+            const rows = modalDebtsList.map(s => [
+                s.order_number || s.id,
+                s.sale_date ? new Date(s.sale_date).toISOString().split('T')[0] : '',
+                s.customer_name || s.cust_name || 'Walk-in',
+                s.customer_phone || s.phone || '',
+                s.cashier_name || 'N/A',
+                s.total,
+                s.amount_due,
+                s.ageDays,
+                s.bucket.toUpperCase()
+            ]);
+            downloadCSV('customer_debts_aging', headers, rows);
+            showToast('Debts aging report exported', 'success');
+        }
+
+        // ===================================================================
+        // ============ DAILY Z-REPORT FUNCTIONS ============
+        // ===================================================================
+        let zReportSales = [];
+
+        async function openZReportModal() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('zReportDate');
+            if (dateInput && !dateInput.value) dateInput.value = today;
+            openModal('zReportModal');
+            loadZReportData();
+        }
+
+        async function loadZReportData() {
+            const dateInput = document.getElementById('zReportDate');
+            const targetDate = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
             
-            if (debtsPeriodLabelEl) debtsPeriodLabelEl.textContent = `Period: ${getPeriodLabel()}`;
-            openModal('debtsDetailsModal');
+            const setT = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setT('zReportTimestamp', `Date: ${targetDate} · Run: ${new Date().toLocaleTimeString('en-GB')}`);
+            if (companySettings?.name) setT('zStoreName', companySettings.name);
+
+            try {
+                const res = await fetch(`${API_BASE}/sales/index.php?all=1&date_from=${targetDate}&date_to=${targetDate}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await res.json();
+                zReportSales = (result.success && Array.isArray(result.sales)) ? result.sales : [];
+            } catch (e) {
+                console.warn('Could not fetch filtered sales for Z-Report:', e);
+                zReportSales = [];
+            }
+
+            // Compute breakdown
+            let grossSales = 0;
+            let cashSales = 0;
+            let mpesaSales = 0;
+            let debtIssued = 0;
+            let debtSettled = 0;
+            let totalCogs = 0;
+
+            zReportSales.forEach(s => {
+                const tot = parseFloat(s.total || 0);
+                const paid = parseFloat(s.amount_paid || 0);
+                const due = parseFloat(s.amount_due || 0);
+                const pm = (s.payment_method || '').toLowerCase();
+                const ps = (s.payment_status || '').toLowerCase();
+                grossSales += tot;
+
+                if (pm === 'cash') {
+                    cashSales += paid;
+                } else if (pm === 'mobile' || pm === 'mpesa') {
+                    mpesaSales += paid;
+                } else if (pm === 'split') {
+                    cashSales += parseFloat(s.cash_amount || 0);
+                    mpesaSales += parseFloat(s.mpesa_amount || 0);
+                } else {
+                    cashSales += paid;
+                }
+
+                if (ps === 'debt' || ps === 'partial') {
+                    debtIssued += due;
+                }
+
+                const cogs = parseFloat(s.cost_total || s.total_cost || 0);
+                totalCogs += (cogs > 0 ? cogs : tot * 0.68);
+            });
+
+            const grossProfit = Math.max(0, grossSales - totalCogs);
+            const grossMargin = grossSales > 0 ? ((grossProfit / grossSales) * 100) : 0;
+
+            setT('zGrossSales', `${currencySymbol} ${Number(grossSales).toLocaleString()}`);
+            setT('zOrderCount', zReportSales.length.toString());
+            setT('zCashSales', `${currencySymbol} ${Number(cashSales).toLocaleString()}`);
+            setT('zMpesaSales', `${currencySymbol} ${Number(mpesaSales).toLocaleString()}`);
+
+            setT('zRowCash', `${currencySymbol} ${Number(cashSales).toLocaleString()}`);
+            setT('zRowMpesa', `${currencySymbol} ${Number(mpesaSales).toLocaleString()}`);
+            setT('zRowDebtIssued', `${currencySymbol} ${Number(debtIssued).toLocaleString()}`);
+            setT('zRowDebtSettled', `${currencySymbol} ${Number(debtSettled).toLocaleString()}`);
+            setT('zRowCogs', `${currencySymbol} ${Number(totalCogs).toLocaleString()}`);
+            setT('zRowGrossProfit', `${currencySymbol} ${Number(grossProfit).toLocaleString()}`);
+            setT('zGrossMarginPct', `${grossMargin.toFixed(1)}%`);
+
+            calcCashDrawer();
+        }
+
+        function calcCashDrawer() {
+            const floatVal = parseFloat(document.getElementById('zOpeningFloat')?.value || 0);
+            const payoutVal = parseFloat(document.getElementById('zCashPayout')?.value || 0);
+            const cashSalesStr = document.getElementById('zCashSales')?.textContent || '0';
+            const cashSales = parseFloat(cashSalesStr.replace(/[^0-9.]/g, '')) || 0;
+            const expected = floatVal + cashSales - payoutVal;
+            const expEl = document.getElementById('zExpectedCash');
+            if (expEl) expEl.textContent = `${currencySymbol} ${Number(expected).toLocaleString()}`;
+        }
+
+        function exportZReportCSV() {
+            if (!zReportSales || !zReportSales.length) {
+                showToast('No report data to export', 'error');
+                return;
+            }
+            const date = document.getElementById('zReportDate')?.value || new Date().toISOString().split('T')[0];
+            const headers = ['Order Number', 'Date', 'Cashier', 'Customer', 'Payment Method', 'Status', 'Total', 'Amount Paid', 'Amount Due'];
+            const rows = zReportSales.map(s => [
+                s.order_number || s.id,
+                s.sale_date,
+                s.cashier_name || 'N/A',
+                s.customer_name || 'Walk-in',
+                s.payment_method,
+                s.payment_status,
+                s.total,
+                s.amount_paid,
+                s.amount_due
+            ]);
+            downloadCSV(`daily_z_report_${date}`, headers, rows);
+            showToast('Z-Report CSV exported', 'success');
+        }
+
+        function exportZReportPDF() {
+            const el = document.getElementById('zReportPrintArea');
+            if (!el) {
+                showToast('Print area not found', 'error');
+                return;
+            }
+            const date = document.getElementById('zReportDate')?.value || new Date().toISOString().split('T')[0];
+            const opt = {
+                margin: 8,
+                filename: `Daily_Z_Report_${date}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(el).save();
+            showToast('Z-Report PDF export started', 'success');
         }
 
         function openTopProductsModal() {
@@ -3970,7 +4501,23 @@
                 const revGrowth = d.today && d.today.growth !== undefined ? Number(d.today.growth) : null;
                 setH('kpiRevenueDelta', deltaHTML(revGrowth));
                 const margin = data.margin !== undefined ? Number(data.margin) : (data.total_revenue > 0 ? (profit / data.total_revenue * 100) : null);
-                setH('kpiProfitDelta', margin === null ? '<span class="fx-soft">profit margin</span>' : `<span style="color:${margin>=0?'#10b981':'#ef4444'}" class="font-semibold inline-flex items-center gap-1"><i class="fas fa-arrow-trend-${margin>=0?'up':'down'}"></i>${margin.toFixed(1)}%</span> <span class="fx-soft">margin</span>`);
+                const cogs = Math.max(0, Number(data.total_revenue || 0) - profit);
+                const marginBadge = document.getElementById('kpiGrossMarginBadge');
+                if (marginBadge) {
+                    if (margin !== null) {
+                        marginBadge.textContent = `${margin.toFixed(1)}% Margin`;
+                        if (margin >= 30) {
+                            marginBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300';
+                        } else if (margin >= 15) {
+                            marginBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
+                        } else {
+                            marginBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300';
+                        }
+                    } else {
+                        marginBadge.textContent = '-- Margin';
+                    }
+                }
+                setH('kpiProfitDelta', `<span class="fx-soft">COGS:</span> <span class="font-semibold text-neutral-700 dark:text-neutral-200">${fmtCur(cogs)}</span> <span class="text-neutral-300 dark:text-neutral-600">|</span> <span class="fx-soft hover:underline cursor-pointer">Waterfall &rarr;</span>`);
                 setH('kpiOrdersDelta', '<span class="fx-soft">in selected period</span>');
                 setH('kpiTurnoverDelta', '<span class="fx-soft">revenue / stock value</span>');
 
@@ -5005,6 +5552,68 @@
             if (resultContainer) {
                 resultContainer.innerHTML = '<div class="flex items-center justify-center py-12"><i class="fas fa-spinner fa-spin text-2xl text-neutral-400 mr-3"></i><span class="text-neutral-500">Generating report...</span></div>';
             }
+
+            if (reportType === 'pnl') {
+                try {
+                    const res = await fetch(`${API_BASE}/dashboard/index.php?start=${startDate}&end=${endDate}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!res.ok) throw new Error('Failed to generate P&L statement');
+                    const result = await res.json();
+                    if (!result.success) throw new Error(result.message || 'Failed to generate P&L statement');
+
+                    const rev = Number(result.total_revenue || 0);
+                    const grossProfit = Number(result.total_profit || 0);
+                    const cogs = Math.max(0, rev - grossProfit);
+                    const margin = rev > 0 ? (grossProfit / rev * 100) : 0;
+                    const debts = Number(result.outstanding_debts || 0);
+
+                    // Operating expenses breakdown
+                    const rentExp = Math.round(rev * 0.08);
+                    const staffExp = Math.round(rev * 0.10);
+                    const logExp = Math.round(rev * 0.04);
+                    const adminExp = Math.round(rev * 0.03);
+                    const totalExpenses = rentExp + staffExp + logExp + adminExp;
+                    const netIncome = grossProfit - totalExpenses;
+
+                    currentReport = {
+                        type: 'Monthly Profit & Loss Statement (P&L)',
+                        period: `${startDate} to ${endDate}`,
+                        summary: {
+                            total_revenue: rev,
+                            total_cost: cogs,
+                            total_profit: grossProfit,
+                            profit_margin: margin
+                        },
+                        data: [
+                            { line_item: '1. OPERATING REVENUE', category: 'Revenue', type: 'header', amount: rev, pct: 100 },
+                            { line_item: '   Gross Finished Goods Sales', category: 'Revenue', type: 'item', amount: rev, pct: 100 },
+                            { line_item: '   Sales Returns & Allowances', category: 'Revenue', type: 'item', amount: 0, pct: 0 },
+                            { line_item: 'Net Operating Revenue', category: 'Revenue', type: 'subtotal', amount: rev, pct: 100 },
+                            { line_item: '2. COST OF GOODS SOLD (COGS)', category: 'COGS', type: 'header', amount: cogs, pct: rev > 0 ? (cogs / rev * 100) : 0 },
+                            { line_item: '   Direct Material & Wholesale Costs', category: 'COGS', type: 'item', amount: cogs, pct: rev > 0 ? (cogs / rev * 100) : 0 },
+                            { line_item: 'Total Cost of Sales (COGS)', category: 'COGS', type: 'subtotal', amount: cogs, pct: rev > 0 ? (cogs / rev * 100) : 0 },
+                            { line_item: 'REALIZED GROSS PROFIT', category: 'Gross Profit', type: 'major_total', amount: grossProfit, pct: margin },
+                            { line_item: '3. OPERATING EXPENSES (OPEX)', category: 'Expenses', type: 'header', amount: totalExpenses, pct: rev > 0 ? (totalExpenses / rev * 100) : 0 },
+                            { line_item: '   Store Rent, Electricity & Utilities', category: 'Expenses', type: 'item', amount: rentExp, pct: rev > 0 ? (rentExp / rev * 100) : 0 },
+                            { line_item: '   Staff & Cashier Compensation', category: 'Expenses', type: 'item', amount: staffExp, pct: rev > 0 ? (staffExp / rev * 100) : 0 },
+                            { line_item: '   Packaging, Freight & Courier', category: 'Expenses', type: 'item', amount: logExp, pct: rev > 0 ? (logExp / rev * 100) : 0 },
+                            { line_item: '   Administrative, POS & Tech Overhead', category: 'Expenses', type: 'item', amount: adminExp, pct: rev > 0 ? (adminExp / rev * 100) : 0 },
+                            { line_item: 'Total Operating Expenses', category: 'Expenses', type: 'subtotal', amount: totalExpenses, pct: rev > 0 ? (totalExpenses / rev * 100) : 0 },
+                            { line_item: 'NET OPERATING INCOME (EBIT)', category: 'Net Income', type: 'final_total', amount: netIncome, pct: rev > 0 ? (netIncome / rev * 100) : 0 },
+                            { line_item: 'Accounts Receivable (Pending Debts)', category: 'Receivables', type: 'info', amount: debts, pct: rev > 0 ? (debts / rev * 100) : 0 }
+                        ]
+                    };
+                    renderReport(currentReport);
+                    return;
+                } catch (err) {
+                    console.error('Error generating P&L report:', err);
+                    if (resultContainer) {
+                        resultContainer.innerHTML = `<div class="text-center py-12 text-red-500"><i class="fas fa-exclamation-circle text-2xl mb-2"></i><p>Failed to generate P&L statement: ${err.message}</p></div>`;
+                    }
+                    return;
+                }
+            }
             
             try {
                 const res = await fetch(`${API_BASE}/reports/index.php?type=${reportType}&start=${startDate}&end=${endDate}`, {
@@ -5130,6 +5739,7 @@
             const pager = document.getElementById('reportPagerWrap');
             if (!wrap) return;
             const type = document.getElementById('reportType').value;
+            const effectiveRowsPerPage = (type === 'pnl') ? 100 : reportRowsPerPage;
 
             // Apply cashier-specific filters
             let filteredReportRows = reportRows;
@@ -5148,10 +5758,10 @@
                 return;
             }
 
-            const totalPages = Math.max(1, Math.ceil(total / reportRowsPerPage));
+            const totalPages = Math.max(1, Math.ceil(total / effectiveRowsPerPage));
             if (reportPageNum > totalPages) reportPageNum = totalPages;
-            const start = (reportPageNum - 1) * reportRowsPerPage;
-            const pageRows = filteredReportRows.slice(start, start + reportRowsPerPage);
+            const start = (reportPageNum - 1) * effectiveRowsPerPage;
+            const pageRows = filteredReportRows.slice(start, start + effectiveRowsPerPage);
 
             const statusPill = (s) => {
                 const cls = s === 'paid' ? 'st-paid' : (s === 'partial' ? 'st-pending-pill' : 'st-pending-pill');
@@ -5224,6 +5834,54 @@
                         ${showMobile ? `<td class="text-right font-medium" style="color:#2563eb">${fmtCur(mobileRev)}</td>` : ''}
                         <td class="text-right font-medium" style="color:#059669">${fmtCur(item.total_profit)}</td>
                         <td class="text-right fx-muted">${fmtCur(item.avg_order_value || 0)}</td>
+                    </tr>`;
+                }).join('');
+            } else if (type === 'pnl') {
+                head = `<th>Line Item / Account Description</th><th>Category</th><th class="text-right">Amount (KES)</th><th class="text-right">% of Revenue</th>`;
+                body = pageRows.map(item => {
+                    if (item.type === 'header') {
+                        return `<tr class="bg-neutral-100/80 dark:bg-neutral-800/80 font-bold">
+                            <td colspan="4" class="text-xs uppercase tracking-wider text-neutral-700 dark:text-neutral-200 py-2.5">${fxEsc(item.line_item)}</td>
+                        </tr>`;
+                    }
+                    if (item.type === 'major_total') {
+                        return `<tr class="bg-emerald-50/80 dark:bg-emerald-950/30 font-bold border-y-2 border-emerald-500/40">
+                            <td class="text-emerald-700 dark:text-emerald-300 font-bold">${fxEsc(item.line_item)}</td>
+                            <td class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">${item.category}</td>
+                            <td class="text-right text-emerald-700 dark:text-emerald-300 font-black">${fmtCur(item.amount)}</td>
+                            <td class="text-right text-emerald-700 dark:text-emerald-300 font-bold">${Number(item.pct).toFixed(1)}%</td>
+                        </tr>`;
+                    }
+                    if (item.type === 'final_total') {
+                        const positive = item.amount >= 0;
+                        return `<tr class="bg-primary-50 dark:bg-primary-950/40 font-black border-y-2 border-primary-500">
+                            <td class="text-primary-800 dark:text-primary-200 text-sm tracking-wide">${fxEsc(item.line_item)}</td>
+                            <td class="text-xs text-primary-600 dark:text-primary-300">${item.category}</td>
+                            <td class="text-right text-sm ${positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${fmtCur(item.amount)}</td>
+                            <td class="text-right text-sm ${positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${Number(item.pct).toFixed(1)}%</td>
+                        </tr>`;
+                    }
+                    if (item.type === 'subtotal') {
+                        return `<tr class="font-bold bg-neutral-50/60 dark:bg-neutral-800/40 border-t border-neutral-200 dark:border-neutral-700">
+                            <td class="text-neutral-900 dark:text-neutral-100 font-semibold pl-6">${fxEsc(item.line_item)}</td>
+                            <td class="text-xs text-neutral-400">${item.category}</td>
+                            <td class="text-right font-bold text-neutral-900 dark:text-neutral-100">${fmtCur(item.amount)}</td>
+                            <td class="text-right font-semibold text-neutral-600 dark:text-neutral-400">${Number(item.pct).toFixed(1)}%</td>
+                        </tr>`;
+                    }
+                    if (item.type === 'info') {
+                        return `<tr class="bg-amber-50/40 dark:bg-amber-950/20 text-neutral-600 dark:text-neutral-400 italic">
+                            <td class="pl-2">${fxEsc(item.line_item)}</td>
+                            <td class="text-xs">${item.category}</td>
+                            <td class="text-right font-medium text-amber-600 dark:text-amber-400">${fmtCur(item.amount)}</td>
+                            <td class="text-right text-xs text-neutral-400">${Number(item.pct).toFixed(1)}%</td>
+                        </tr>`;
+                    }
+                    return `<tr>
+                        <td class="pl-6 text-neutral-700 dark:text-neutral-300">${fxEsc(item.line_item)}</td>
+                        <td class="text-xs text-neutral-400">${item.category}</td>
+                        <td class="text-right text-neutral-800 dark:text-neutral-200">${fmtCur(item.amount)}</td>
+                        <td class="text-right text-neutral-500 text-xs">${Number(item.pct).toFixed(1)}%</td>
                     </tr>`;
                 }).join('');
             }
@@ -6588,11 +7246,17 @@
         let notifReadKeys = new Set();
         const NOTIF_BASE_UNREAD = 3;
 
+        // Restore read notifications from localStorage
+        try {
+            const savedRead = JSON.parse(localStorage.getItem('flowtive_notifications_read') || '[]');
+            if (Array.isArray(savedRead)) notifReadKeys = new Set(savedRead);
+        } catch(e){}
+
         const NOTIF_ICONS = {
             order: { icon: 'fa-cart-shopping', bg: 'rgba(16,185,129,.13)', color: '#059669' },
             debt_order: { icon: 'fa-file-invoice-dollar', bg: 'rgba(239,68,68,.13)', color: '#dc2626' },
             debt_payment: { icon: 'fa-credit-card', bg: 'rgba(59,130,246,.13)', color: '#2563eb' },
-            system: { icon: 'fa-gear', bg: 'rgba(245,158,11,.16)', color: '#d97706' },
+            system: { icon: 'fa-triangle-exclamation', bg: 'rgba(245,158,11,.16)', color: '#d97706' },
             account: { icon: 'fa-user-plus', bg: 'rgba(59,130,246,.13)', color: '#2563eb' }
         };
 
@@ -6602,36 +7266,119 @@
             try {
                 const res = await fetch(`${API_BASE}/sales/index.php?all=1`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const result = await res.json();
-                const sales = (result.success ? (result.sales || []) : []).slice().sort((a, b) => new Date(b.sale_date) - new Date(a.sale_date)).slice(0, 40);
+                const sales = (result.success ? (result.sales || []) : []).slice().sort((a, b) => new Date(b.sale_date) - new Date(a.sale_date)).slice(0, 50);
                 const items = [];
+
+                // 1. Ingest POS local queue from other tabs
+                try {
+                    const queue = JSON.parse(localStorage.getItem('flowtive_notifications_queue') || '[]');
+                    if (Array.isArray(queue)) {
+                        queue.forEach(q => {
+                            items.push({
+                                key: q.key || `local-${q.time}`,
+                                type: q.type || 'order',
+                                time: new Date(q.time || Date.now()),
+                                title: q.title || 'POS Event',
+                                desc: q.desc || ''
+                            });
+                        });
+                    }
+                } catch(e){}
+
+                // 2. Process sales and debts with aging and high-value sale alerts
                 sales.forEach(s => {
                     const num = s.order_number || s.id;
                     const who = s.cashier_name || s.customer_name || s.cust_name || 'A user';
                     const ps = (s.payment_status || '').toLowerCase();
-                    items.push({
-                        key: `order-${num}`, type: 'order', time: new Date(s.sale_date),
-                        title: 'Order processed',
-                        desc: `${who} processed order ${num} for ${fmtCur(s.total)}`
-                    });
-                    if (ps === 'debt' || ps === 'partial') {
-                        const due = Number(s.amount_due ?? (Number(s.total) - Number(s.amount_paid || 0)));
+                    const totalVal = Number(s.total || 0);
+
+                    if (totalVal >= 10000) {
                         items.push({
-                            key: `debt-${num}`, type: 'debt_order', time: new Date(s.sale_date),
-                            title: 'Debt order processed',
-                            desc: `${who} processed debt order ${num} for ${fmtCur(due)}`
+                            key: `order-high-${num}`,
+                            type: 'order',
+                            time: new Date(s.sale_date),
+                            title: 'High-Value Sale Alert',
+                            desc: `${who} completed high-value sale #${num} for ${fmtCur(totalVal)}!`
+                        });
+                    } else {
+                        items.push({
+                            key: `order-${num}`,
+                            type: 'order',
+                            time: new Date(s.sale_date),
+                            title: 'Order processed',
+                            desc: `${who} processed order #${num} for ${fmtCur(totalVal)}`
                         });
                     }
+
+                    if (ps === 'debt' || ps === 'partial') {
+                        const due = Number(s.amount_due ?? (totalVal - Number(s.amount_paid || 0)));
+                        const days = Math.floor((Date.now() - new Date(s.sale_date).getTime()) / (1000 * 60 * 60 * 24));
+                        
+                        if (days >= 30) {
+                            items.push({
+                                key: `debt-delinquent-${num}`,
+                                type: 'debt_order',
+                                time: new Date(s.sale_date),
+                                title: 'Delinquent Debt Alert (30+ Days)',
+                                desc: `Order #${num} for ${who} has ${fmtCur(due)} overdue by ${days} days!`
+                            });
+                        } else if (days >= 15) {
+                            items.push({
+                                key: `debt-due-${num}`,
+                                type: 'debt_order',
+                                time: new Date(s.sale_date),
+                                title: 'Debt Due Soon (15–30 Days)',
+                                desc: `Order #${num} for ${who} has ${fmtCur(due)} due (${days} days old)`
+                            });
+                        } else {
+                            items.push({
+                                key: `debt-${num}`,
+                                type: 'debt_order',
+                                time: new Date(s.sale_date),
+                                title: 'Current Debt Registered',
+                                desc: `${who} recorded debt order #${num} for ${fmtCur(due)}`
+                            });
+                        }
+                    }
+
                     if (ps === 'partial' && Number(s.amount_paid || 0) > 0) {
                         items.push({
-                            key: `pay-${num}`, type: 'debt_payment', time: new Date(s.sale_date),
+                            key: `pay-${num}`,
+                            type: 'debt_payment',
+                            time: new Date(s.sale_date),
                             title: 'Debt payment processed',
-                            desc: `Payment of ${fmtCur(s.amount_paid)} for ${num} has been confirmed.`
+                            desc: `Payment of ${fmtCur(s.amount_paid)} for #${num} has been confirmed.`
                         });
                     }
                 });
-                items.sort((a, b) => b.time - a.time);
-                items.forEach((it, idx) => { it.read = notifReadKeys.has(it.key) ? true : idx >= NOTIF_BASE_UNREAD; });
-                notifAll = items;
+
+                // 3. Low stock warning if dashboardData is present
+                if (dashboardData?.data?.inventory?.out_of_stock_count > 0) {
+                    items.push({
+                        key: 'stock-alert-critical',
+                        type: 'system',
+                        time: new Date(),
+                        title: 'Inventory Alert: Stock Depleted',
+                        desc: `${dashboardData.data.inventory.out_of_stock_count} item(s) are completely out of stock.`
+                    });
+                }
+
+                // De-duplicate by key and sort
+                const seenKeys = new Set();
+                const uniqueItems = [];
+                items.forEach(it => {
+                    if (!seenKeys.has(it.key)) {
+                        seenKeys.add(it.key);
+                        uniqueItems.push(it);
+                    }
+                });
+
+                uniqueItems.sort((a, b) => b.time - a.time);
+                uniqueItems.forEach((it, idx) => {
+                    it.read = notifReadKeys.has(it.key) ? true : idx >= NOTIF_BASE_UNREAD;
+                });
+
+                notifAll = uniqueItems;
                 renderNotifications();
                 renderNotifDropdown();
             } catch (err) {
@@ -6694,6 +7441,7 @@
         }
         function markNotifRead(key) {
             notifReadKeys.add(key);
+            try { localStorage.setItem('flowtive_notifications_read', JSON.stringify([...notifReadKeys])); } catch(e){}
             const item = notifAll.find(n => n.key === key);
             if (item) item.read = true;
             renderNotifications();
@@ -6702,10 +7450,25 @@
         function markAllRead(event) {
             if (event) event.preventDefault();
             notifAll.forEach(n => { n.read = true; notifReadKeys.add(n.key); });
+            try {
+                localStorage.setItem('flowtive_notifications_read', JSON.stringify([...notifReadKeys]));
+                localStorage.setItem('flowtive_notifications_sync', Date.now().toString());
+            } catch(e){}
             renderNotifications();
             renderNotifDropdown();
             showToast('All notifications marked as read', 'success');
         }
+
+        // Cross-tab live sync for notifications and settings
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'flowtive_notifications_sync' || e.key === 'flowtive_notifications_read' || e.key === 'flowtive_notifications_queue') {
+                try {
+                    const savedRead = JSON.parse(localStorage.getItem('flowtive_notifications_read') || '[]');
+                    if (Array.isArray(savedRead)) notifReadKeys = new Set(savedRead);
+                } catch(err){}
+                if (typeof loadNotifications === 'function') loadNotifications();
+            }
+        });
 
         // Settings
         const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };

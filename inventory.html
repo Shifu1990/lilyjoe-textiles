@@ -1371,10 +1371,25 @@
             }
         }
 
-        // Live update when ERP broadcasts a settings change in another tab
+        // Live update when ERP broadcasts a settings change or notification sync in another tab
         window.addEventListener('storage', (e) => {
             if (e.key === 'flowtive_settings' && e.newValue) {
                 try { applyCompanySettings(JSON.parse(e.newValue)); } catch (ex) {}
+            }
+            if (e.key === 'flowtive_notifications_sync' || e.key === 'flowtive_notifications_read') {
+                const badge = document.getElementById('notifBadge');
+                const count = document.getElementById('notifCount');
+                if (badge) badge.style.display = 'none';
+                if (count) count.textContent = '0';
+                const list = document.getElementById('invNotifList');
+                if (list) {
+                    list.innerHTML = `
+                        <div class="p-4 text-center text-xs text-neutral-400">
+                            <i class="fas fa-check-circle text-emerald-500 text-lg mb-1 block"></i>
+                            All caught up! No unread notifications.
+                        </div>
+                    `;
+                }
             }
         });
         
@@ -1748,6 +1763,9 @@
                     </div>
                 `;
             }
+            try {
+                localStorage.setItem('flowtive_notifications_sync', Date.now().toString());
+            } catch(e){}
             showToast('All notifications marked as read', 'success');
         }
 

@@ -2116,6 +2116,39 @@
             openModal('paymentModal');
         }
 
+        function broadcastPosNotification(sale, isDebt, total, amountDue, customerName) {
+            try {
+                const queue = JSON.parse(localStorage.getItem('flowtive_notifications_queue') || '[]');
+                const num = sale?.order_number || sale?.id || generateOrderNumber();
+                const who = currentUser?.full_name || 'Cashier';
+                const formattedTotal = Number(total || 0).toLocaleString();
+                const formattedDue = Number(amountDue || 0).toLocaleString();
+
+                if (isDebt) {
+                    queue.unshift({
+                        key: `debt-${num}-${Date.now()}`,
+                        type: 'debt_order',
+                        time: new Date().toISOString(),
+                        title: 'New Debt Order Registered',
+                        desc: `${who} recorded debt for ${customerName || 'Customer'} of KES ${formattedDue} (Order #${num})`
+                    });
+                } else if (total >= 10000) {
+                    queue.unshift({
+                        key: `sale-high-${num}-${Date.now()}`,
+                        type: 'order',
+                        time: new Date().toISOString(),
+                        title: 'High-Value Sale Alert',
+                        desc: `${who} completed high-value sale #${num} for KES ${formattedTotal}!`
+                    });
+                }
+
+                localStorage.setItem('flowtive_notifications_queue', JSON.stringify(queue.slice(0, 30)));
+                localStorage.setItem('flowtive_notifications_sync', Date.now().toString());
+            } catch (err) {
+                console.warn('Failed to broadcast POS notification:', err);
+            }
+        }
+
         async function completeSale() {
             const followUpSaleId = sessionStorage.getItem('followUpSaleId');
             
@@ -2275,8 +2308,10 @@
                         };
                         
                         generateInvoice(mockSale);
+                        broadcastPosNotification(mockSale, true, total, total - received, customerName);
                     } else {
                         showToast('Sale completed successfully!', 'success');
+                        broadcastPosNotification(mockSale, false, total, 0, null);
                     }
                     
                     // Clear cart and refresh
@@ -2297,12 +2332,14 @@
                         if (result.sale) {
                             generateInvoice(result.sale);
                         }
+                        broadcastPosNotification(result.sale, true, total, total - received, customerName);
                     } else {
                         showToast('Sale completed successfully!', 'success');
                         // Generate and show receipt for paid orders
                         if (result.sale) {
                             generateReceipt(result.sale);
                         }
+                        broadcastPosNotification(result.sale, false, total, 0, null);
                     }
                     
                     // Clear cart
@@ -2990,6 +3027,9 @@
             const count = document.getElementById('notifCount');
             if (badge) badge.classList.add('hidden');
             if (count) count.textContent = '0';
+            try {
+                localStorage.setItem('flowtive_notifications_sync', Date.now().toString());
+            } catch(e){}
             showToast('All notifications marked as read', 'success');
         }
 
@@ -3267,10 +3307,16 @@
             }
         }
 
-        // Live update when ERP broadcasts a settings change in another tab
+        // Live update when ERP broadcasts a settings change or notification sync in another tab
         window.addEventListener('storage', (e) => {
             if (e.key === 'flowtive_settings' && e.newValue) {
                 try { applyCompanySettings(JSON.parse(e.newValue)); } catch (ex) {}
+            }
+            if (e.key === 'flowtive_notifications_sync' || e.key === 'flowtive_notifications_read') {
+                const badge = document.getElementById('notifBadge');
+                const count = document.getElementById('notifCount');
+                if (badge) badge.classList.add('hidden');
+                if (count) count.textContent = '0';
             }
         });
 
